@@ -554,6 +554,8 @@
 
         <div id="dropdownMenu" class="dropdown-menu">
             <a href="#" onclick="showTentang(event)">Tentang</a>
+            <!-- Penambahan tombol Logout -->
+            <a href="#" onclick="logoutAplikasi(event)" style="color: var(--expense);">Keluar (Logout)</a>
         </div>
     </header>
 
@@ -700,6 +702,20 @@
 
     function closeTentang() {
         document.getElementById('tentangModal').style.display = 'none';
+    }
+
+    // --- Penambahan Fungsi Logout ---
+    function logoutAplikasi(e) {
+        e.preventDefault();
+        // Hapus password yang tersimpan
+        localStorage.removeItem('savedAppPassword');
+        // Tutup menu dropdown
+        document.getElementById('dropdownMenu').classList.remove('show');
+        // Sembunyikan main container, tampilkan login
+        document.getElementById('mainContainer').style.display = 'none';
+        document.getElementById('loginOverlay').style.display = 'flex';
+        // Kosongkan input password
+        document.getElementById('inputPassword').value = '';
     }
 
     window.addEventListener('click', function(event) {
