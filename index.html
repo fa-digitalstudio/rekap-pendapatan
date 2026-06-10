@@ -640,7 +640,6 @@
     const APP_PASSWORD = "admin";
     // ==========================================
 
-    // Pengecekan Auto-Login (Apakah password sudah disimpan sebelumnya?)
     window.addEventListener('DOMContentLoaded', () => {
         const savedPwd = localStorage.getItem('savedAppPassword');
         if (savedPwd === APP_PASSWORD) {
@@ -649,7 +648,6 @@
         }
     });
 
-    // Fungsi Menampilkan/Menyembunyikan Password
     function togglePassword() {
         const pwdInput = document.getElementById('inputPassword');
         const toggleBtn = document.getElementById('togglePwdBtn');
@@ -662,7 +660,6 @@
         }
     }
 
-    // Fungsi Cek Password Utama
     function cekPassword() {
         const pwd = document.getElementById('inputPassword').value;
         const remember = document.getElementById('rememberMe').checked;
@@ -682,7 +679,6 @@
         }
     }
 
-    // Memungkinkan tombol "Enter" di keyboard untuk langsung login
     document.getElementById("inputPassword").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -714,21 +710,23 @@
             }
         }
     });
-    // ------------------------------------
-
 
     // ⚠️ URL GOOGLE APPS SCRIPT
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRNWsz1RU-7srpz4KSKkwTKmuYNwBa2UX1Wcoq3UQloQ3kfnRPqjFGZqy2Scs5ENC2/exec';
     const isOfflineMode = !SCRIPT_URL.startsWith('http');
 
     let db = [];
-    document.getElementById('tanggal').valueAsDate = new Date();
     
-    // --- FITUR BARU: Memaksa filter default ke Harian hari ini ---
+    // SETUP TANGGAL LOKAL YANG AMAN
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById('tanggal').value = `${yyyy}-${mm}-${dd}`;
+    
     document.getElementById('filterType').value = 'harian';
     changeFilter();
 
-    // --- FITUR BARU: Sinkronisasi Input Tanggal ---
     document.getElementById('tanggal').addEventListener('change', function() {
         document.getElementById('filterType').value = 'harian';
         document.getElementById('filterDate').value = this.value;
@@ -748,18 +746,20 @@
 
         if (type === 'harian') {
             dateInput.style.display = 'block';
-            if(!dateInput.value) dateInput.valueAsDate = new Date(); // Set default hari ini
+            if(!dateInput.value) {
+                const td = new Date();
+                dateInput.value = td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0') + '-' + String(td.getDate()).padStart(2, '0');
+            }
         } else if (type === 'bulanan') {
             monthInput.style.display = 'block';
             if(!monthInput.value) {
                 const now = new Date();
                 const m = (now.getMonth() + 1).toString().padStart(2, '0');
-                monthInput.value = `${now.getFullYear()}-${m}`; // Set default bulan ini
+                monthInput.value = `${now.getFullYear()}-${m}`; 
             }
         }
-        render(); // Render ulang sesuai filter baru
+        render(); 
     }
-    // --------------------------
 
     async function muatData() {
         if (isOfflineMode) {
@@ -827,16 +827,17 @@
         b.innerHTML = '';
         let tin = 0, tout = 0;
 
-        // Proses Filter Data
         const filterType = document.getElementById('filterType') ? document.getElementById('filterType').value : 'semua';
         const filterDate = document.getElementById('filterDate') ? document.getElementById('filterDate').value : '';
         const filterMonth = document.getElementById('filterMonth') ? document.getElementById('filterMonth').value : '';
 
         let filteredDb = db;
+        
+        // PERBAIKAN: Menggunakan fungsi startsWith() agar cocok meskipun Google Sheets menambahkan data waktu/jam di belakang tanggal
         if (filterType === 'harian' && filterDate) {
-            filteredDb = db.filter(i => i.t === filterDate);
+            filteredDb = db.filter(i => String(i.t).startsWith(filterDate));
         } else if (filterType === 'bulanan' && filterMonth) {
-            filteredDb = db.filter(i => i.t.startsWith(filterMonth)); 
+            filteredDb = db.filter(i => String(i.t).startsWith(filterMonth)); 
         }
 
         filteredDb.sort((x, y) => new Date(y.t) - new Date(x.t)).forEach(i => {
@@ -844,8 +845,11 @@
             const color = i.j === 'masuk' ? 'var(--income)' : 'var(--expense)';
             const simbol = i.j === 'masuk' ? '+' : '-';
 
+            // Memotong tampilan tanggal jika ada string panjang dari google sheet (hanya mengambil YYYY-MM-DD)
+            const cleanDate = String(i.t).split('T')[0];
+
             b.innerHTML += `<tr>
-                <td><small style="color:var(--text-muted); font-weight:500;">${i.t}</small></td>
+                <td><small style="color:var(--text-muted); font-weight:500;">${cleanDate}</small></td>
                 <td>
                     <strong style="color:var(--text-main); font-weight:600;">${i.k}</strong><br>
                     <span class="tag ${i.j === 'masuk' ? 'tag-in' : 'tag-out'}">${i.j.toUpperCase()}</span>
@@ -855,7 +859,6 @@
             </tr>`;
         });
 
-        // Tampilkan teks ketika data kosong
         if(filteredDb.length === 0) {
             b.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 20px;">Tidak ada data pada periode ini</td></tr>`;
         }
@@ -912,14 +915,15 @@
         const filterDate = document.getElementById('filterDate') ? document.getElementById('filterDate').value : '';
         const filterMonth = document.getElementById('filterMonth') ? document.getElementById('filterMonth').value : '';
 
-        // Terapkan filter yang sama pada hasil salinan
         let filteredDb = db;
         let titleLabel = "KESELURUHAN";
+        
+        // PERBAIKAN DI SINI JUGA
         if (filterType === 'harian' && filterDate) {
-            filteredDb = db.filter(i => i.t === filterDate);
+            filteredDb = db.filter(i => String(i.t).startsWith(filterDate));
             titleLabel = `HARIAN (${filterDate})`;
         } else if (filterType === 'bulanan' && filterMonth) {
-            filteredDb = db.filter(i => i.t.startsWith(filterMonth));
+            filteredDb = db.filter(i => String(i.t).startsWith(filterMonth));
             titleLabel = `BULANAN (${filterMonth})`;
         }
 
@@ -932,13 +936,14 @@
         let hasIn = false, hasOut = false;
 
         sortedDb.forEach((i) => {
+            const cleanDate = String(i.t).split('T')[0]; // Memastikan format salinan rapi
             if(i.j === 'masuk') {
                 tin += i.n;
-                txtIn += `- (${i.t}) ${i.k}: Rp ${i.n.toLocaleString('id-ID')}\n`;
+                txtIn += `- (${cleanDate}) ${i.k}: Rp ${i.n.toLocaleString('id-ID')}\n`;
                 hasIn = true;
             } else {
                 tout += i.n;
-                txtOut += `- (${i.t}) ${i.k}: Rp ${i.n.toLocaleString('id-ID')}\n`;
+                txtOut += `- (${cleanDate}) ${i.k}: Rp ${i.n.toLocaleString('id-ID')}\n`;
                 hasOut = true;
             }
         });
