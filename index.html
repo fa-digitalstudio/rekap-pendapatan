@@ -716,6 +716,22 @@
     const isOfflineMode = !SCRIPT_URL.startsWith('http');
 
     let db = [];
+
+    // --- FUNGSI BARU: Normalkan tanggal agar kebal dari bug Timezone Google Sheets ---
+    function getLocalDateStr(dateVal) {
+        const strVal = String(dateVal);
+        // Jika format sudah bersih "YYYY-MM-DD"
+        if (/^\d{4}-\d{2}-\d{2}$/.test(strVal)) return strVal;
+        
+        // Membaca tanggal jika ada buntut waktu internasional (mengubah ke lokal)
+        const d = new Date(dateVal);
+        if (isNaN(d)) return strVal.split('T')[0];
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+    // ---------------------------------------------------------------------------------
     
     // SETUP TANGGAL LOKAL YANG AMAN
     const today = new Date();
@@ -833,11 +849,11 @@
 
         let filteredDb = db;
         
-        // PERBAIKAN: Menggunakan fungsi startsWith() agar cocok meskipun Google Sheets menambahkan data waktu/jam di belakang tanggal
+        // --- PERBAIKAN FILTER: Memakai tanggal yang sudah dinormalkan ---
         if (filterType === 'harian' && filterDate) {
-            filteredDb = db.filter(i => String(i.t).startsWith(filterDate));
+            filteredDb = db.filter(i => getLocalDateStr(i.t) === filterDate);
         } else if (filterType === 'bulanan' && filterMonth) {
-            filteredDb = db.filter(i => String(i.t).startsWith(filterMonth)); 
+            filteredDb = db.filter(i => getLocalDateStr(i.t).startsWith(filterMonth)); 
         }
 
         filteredDb.sort((x, y) => new Date(y.t) - new Date(x.t)).forEach(i => {
@@ -845,8 +861,7 @@
             const color = i.j === 'masuk' ? 'var(--income)' : 'var(--expense)';
             const simbol = i.j === 'masuk' ? '+' : '-';
 
-            // Memotong tampilan tanggal jika ada string panjang dari google sheet (hanya mengambil YYYY-MM-DD)
-            const cleanDate = String(i.t).split('T')[0];
+            const cleanDate = getLocalDateStr(i.t);
 
             b.innerHTML += `<tr>
                 <td><small style="color:var(--text-muted); font-weight:500;">${cleanDate}</small></td>
@@ -918,12 +933,12 @@
         let filteredDb = db;
         let titleLabel = "KESELURUHAN";
         
-        // PERBAIKAN DI SINI JUGA
+        // --- PERBAIKAN DI SALINAN JUGA ---
         if (filterType === 'harian' && filterDate) {
-            filteredDb = db.filter(i => String(i.t).startsWith(filterDate));
+            filteredDb = db.filter(i => getLocalDateStr(i.t) === filterDate);
             titleLabel = `HARIAN (${filterDate})`;
         } else if (filterType === 'bulanan' && filterMonth) {
-            filteredDb = db.filter(i => String(i.t).startsWith(filterMonth));
+            filteredDb = db.filter(i => getLocalDateStr(i.t).startsWith(filterMonth));
             titleLabel = `BULANAN (${filterMonth})`;
         }
 
@@ -936,7 +951,7 @@
         let hasIn = false, hasOut = false;
 
         sortedDb.forEach((i) => {
-            const cleanDate = String(i.t).split('T')[0]; // Memastikan format salinan rapi
+            const cleanDate = getLocalDateStr(i.t); 
             if(i.j === 'masuk') {
                 tin += i.n;
                 txtIn += `- (${cleanDate}) ${i.k}: Rp ${i.n.toLocaleString('id-ID')}\n`;
