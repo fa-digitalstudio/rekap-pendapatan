@@ -75,57 +75,24 @@
         }
         .del-btn:hover { background: var(--expense); color: white; }
 
-        /* --- TAMBAHAN OPTIMASI MODE LANSKAP (LANDSCAPE) --- */
         @media (orientation: landscape) and (max-height: 500px) {
             body { padding: 5px; }
             header { margin-bottom: 10px; }
             header h2 { font-size: 1.1rem; }
-
-            .container { 
-                display: grid; 
-                grid-template-columns: 1fr 1.2fr; 
-                gap: 10px; 
-                max-width: 100%;
-            }
-
+            .container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; max-width: 100%; }
             header { grid-column: span 2; }
-
-            .summary-grid { 
-                grid-template-columns: 1fr; 
-                margin-bottom: 0;
-                gap: 5px;
-            }
-            
-            .sum-card { 
-                padding: 8px; 
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center; 
-            }
-            
+            .summary-grid { grid-template-columns: 1fr; margin-bottom: 0; gap: 5px; }
+            .sum-card { padding: 8px; display: flex; justify-content: space-between; align-items: center; }
             .sum-val { font-size: 1rem; }
             .sum-label { font-size: 0.6rem; }
             .bg-balance { grid-column: span 1; }
-
             .card { padding: 10px; margin-bottom: 10px; border-radius: 12px; }
-            
-            .input-group { 
-                margin-bottom: 8px; 
-                flex-direction: row; 
-                align-items: center; 
-            }
-            
+            .input-group { margin-bottom: 8px; flex-direction: row; align-items: center; }
             label { min-width: 90px; font-size: 0.75rem; text-align: left; }
             input, select { padding: 8px; font-size: 0.85rem; }
-
             .btn-group { gap: 5px; }
             button { padding: 10px; font-size: 0.8rem; }
-
-            .table-container { 
-                max-height: 280px; 
-                overflow-y: auto; 
-            }
-            
+            .table-container { max-height: 280px; overflow-y: auto; }
             td, th { padding: 8px; font-size: 0.8rem; }
             .tag { font-size: 0.55rem; }
         }
@@ -199,9 +166,30 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('myMoneyDB')) || [];
+    // ⚠️ TEMPELKAN URL GOOGLE WEB APP KAMU DI SINI
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRNWsz1RU-7srpz4KSKkwTKmuYNwBa2UX1Wcoq3UQloQ3kfnRPqjFGZqy2Scs5ENC2/exec';
+
+    let db = [];
     document.getElementById('tanggal').valueAsDate = new Date();
-    render();
+    muatData();
+
+    // Fungsi untuk mengambil data dari Google Sheets
+    async function muatData() {
+        if (SCRIPT_URL === 'TULIS_URL_WEB_APP_DISINI') {
+            // Jalankan mode LocalStorage jika URL belum dipasang
+            db = JSON.parse(localStorage.getItem('myMoneyDB')) || [];
+            render();
+            return;
+        }
+        try {
+            const res = await fetch(SCRIPT_URL);
+            db = await res.json();
+            render();
+        } catch (err) {
+            console.error(err);
+            alert("Gagal memuat data dari Google Sheets. Pastikan URL Web App benar.");
+        }
+    }
 
     function formatRupiahInput(e) {
         let v = e.value.replace(/[^,\d]/g, '');
@@ -210,7 +198,8 @@
         e.value = s[1] != undefined ? r + ',' + s[1] : r;
     }
 
-    function tambahData() {
+    // Fungsi kirim data baru ke Google Sheets
+    async function tambahData() {
         const j = document.getElementById('jenis').value;
         const t = document.getElementById('tanggal').value;
         const k = document.getElementById('keterangan').value;
@@ -218,12 +207,30 @@
 
         if (!t || !k || n <= 0) return alert("Lengkapi data dengan benar!");
 
-        db.push({ id: Date.now(), j, t, k, n });
-        localStorage.setItem('myMoneyDB', JSON.stringify(db));
-        
-        document.getElementById('keterangan').value = '';
-        document.getElementById('jumlah').value = '';
-        render();
+        const id = Date.now();
+
+        if (SCRIPT_URL === 'TULIS_URL_WEB_APP_DISINI') {
+            db.push({ id, j, t, k, n });
+            localStorage.setItem('myMoneyDB', JSON.stringify(db));
+            document.getElementById('keterangan').value = '';
+            document.getElementById('jumlah').value = '';
+            render();
+            return;
+        }
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: new URLSearchParams({ action: 'add', id, j, t, k, n })
+            });
+            if (response.ok) {
+                document.getElementById('keterangan').value = '';
+                document.getElementById('jumlah').value = '';
+                await muatData();
+            }
+        } catch (error) {
+            alert("Gagal menyimpan data.");
+        }
     }
 
     function render() {
@@ -252,19 +259,47 @@
         document.getElementById('totalBalance').innerText = `Rp ${(tin - tout).toLocaleString('id-ID')}`;
     }
 
-    function hapusSatu(id) {
+    // Fungsi hapus baris tertentu
+    async function hapusSatu(id) {
         if(confirm("Hapus transaksi ini?")) {
-            db = db.filter(i => i.id !== id);
-            localStorage.setItem('myMoneyDB', JSON.stringify(db));
-            render();
+            if (SCRIPT_URL === 'TULIS_URL_WEB_APP_DISINI') {
+                db = db.filter(i => i.id !== id);
+                localStorage.setItem('myMoneyDB', JSON.stringify(db));
+                render();
+                return;
+            }
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: new URLSearchParams({ action: 'delete', id })
+                });
+                await muatData();
+            } catch (error) {
+                alert("Gagal menghapus data.");
+            }
         }
     }
 
-    function hapusSemua() {
+    // Fungsi reset data
+    async function hapusSemua() {
         if(confirm("Hapus semua data?")) {
-            db = [];
-            localStorage.removeItem('myMoneyDB');
-            render();
+            if (SCRIPT_URL === 'TULIS_URL_WEB_APP_DISINI') {
+                db = [];
+                localStorage.removeItem('myMoneyDB');
+                render();
+                return;
+            }
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: new URLSearchParams({ action: 'clear' })
+                });
+                await muatData();
+            } catch (error) {
+                alert("Gagal mereset data.");
+            }
         }
     }
 
