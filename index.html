@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Pendapatan Mandiri</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --income: #10b981;
+            --expense: #ef4444;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+        }
+
+        * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg); margin: 0; padding: 15px; color: var(--text-main); }
+        .container { max-width: 800px; margin: 10px auto; }
+        header { margin-bottom: 20px; text-align: center; }
+        h2 { font-size: 1.5rem; color: var(--primary); text-transform: uppercase; margin: 0; }
+        
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .input-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.85rem; font-weight: 600; }
+        input, select { padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; width: 100%; font-size: 1rem; outline: none; }
+        input:focus { border-color: var(--primary); }
+
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { 
+            padding: 14px; border: none; border-radius: 10px; 
+            font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+
+        .btn-add { background: var(--primary); color: white; grid-column: span 2; }
+        .btn-copy { background: #334155; color: white; }
+        .btn-clear { background: #fee2e2; color: var(--expense); }
+        button:active { transform: scale(0.98); }
+
+        .table-container { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 450px; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #f3f4f6; font-size: 0.75rem; color: #6b7280; }
+        td { padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; vertical-align: middle; }
+        
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .sum-card { padding: 15px; border-radius: 12px; color: white; text-align: center; }
+        .bg-income { background: var(--income); }
+        .bg-expense { background: var(--expense); }
+        .bg-balance { background: #1e293b; grid-column: span 2; }
+        .sum-val { display: block; font-size: 1.3rem; font-weight: 700; }
+        .sum-label { font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; }
+
+        .tag { padding: 3px 8px; border-radius: 5px; font-size: 0.65rem; font-weight: 700; color: white; display: inline-block; margin-top: 4px; }
+        .tag-in { background: var(--income); }
+        .tag-out { background: var(--expense); }
+        
+        .del-btn { 
+            color: var(--expense); 
+            background: #fff1f2; 
+            border: 1px solid #fecdd3; 
+            padding: 6px 10px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 0.7rem; 
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .del-btn:hover { background: var(--expense); color: white; }
+
+        /* --- TAMBAHAN OPTIMASI MODE LANSKAP (LANDSCAPE) --- */
+        @media (orientation: landscape) and (max-height: 500px) {
+            body { padding: 5px; }
+            header { margin-bottom: 10px; }
+            header h2 { font-size: 1.1rem; }
+
+            .container { 
+                display: grid; 
+                grid-template-columns: 1fr 1.2fr; 
+                gap: 10px; 
+                max-width: 100%;
+            }
+
+            header { grid-column: span 2; }
+
+            .summary-grid { 
+                grid-template-columns: 1fr; 
+                margin-bottom: 0;
+                gap: 5px;
+            }
+            
+            .sum-card { 
+                padding: 8px; 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+            }
+            
+            .sum-val { font-size: 1rem; }
+            .sum-label { font-size: 0.6rem; }
+            .bg-balance { grid-column: span 1; }
+
+            .card { padding: 10px; margin-bottom: 10px; border-radius: 12px; }
+            
+            .input-group { 
+                margin-bottom: 8px; 
+                flex-direction: row; 
+                align-items: center; 
+            }
+            
+            label { min-width: 90px; font-size: 0.75rem; text-align: left; }
+            input, select { padding: 8px; font-size: 0.85rem; }
+
+            .btn-group { gap: 5px; }
+            button { padding: 10px; font-size: 0.8rem; }
+
+            .table-container { 
+                max-height: 280px; 
+                overflow-y: auto; 
+            }
+            
+            td, th { padding: 8px; font-size: 0.8rem; }
+            .tag { font-size: 0.55rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header><h2>Rekap Pendapatan Mandiri</h2></header>
+
+    <div class="left-col">
+        <div class="summary-grid">
+            <div class="sum-card bg-income">
+                <span class="sum-label">Pemasukkan</span>
+                <span class="sum-val" id="totalIn">Rp 0</span>
+            </div>
+            <div class="sum-card bg-expense">
+                <span class="sum-label">Pengeluaran</span>
+                <span class="sum-val" id="totalOut">Rp 0</span>
+            </div>
+            <div class="sum-card bg-balance">
+                <span class="sum-label">Pendapatan Bersih</span>
+                <span class="sum-val" id="totalBalance">Rp 0</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="input-group">
+                <label>Jenis</label>
+                <select id="jenis">
+                    <option value="masuk">Pendapatan (Masuk)</option>
+                    <option value="keluar">Pengeluaran (Keluar)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Tanggal</label>
+                <input type="date" id="tanggal">
+            </div>
+            <div class="input-group">
+                <label>Keterangan</label>
+                <input type="text" id="keterangan" placeholder="Ketik keterangan...">
+            </div>
+            <div class="input-group">
+                <label>Nominal</label>
+                <input type="text" id="jumlah" placeholder="0" oninput="formatRupiahInput(this)">
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-add" onclick="tambahData()">SIMPAN</button>
+                <button class="btn-copy" onclick="copyToClipboard()">SALIN</button>
+                <button class="btn-clear" onclick="hapusSemua()">RESET</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 10px;">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TANGGAL</th>
+                        <th>KETERANGAN</th>
+                        <th>JUMLAH</th>
+                        <th>AKSI</th>
+                    </tr>
+                </thead>
+                <tbody id="isiTabel"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('myMoneyDB')) || [];
+    document.getElementById('tanggal').valueAsDate = new Date();
+    render();
+
+    function formatRupiahInput(e) {
+        let v = e.value.replace(/[^,\d]/g, '');
+        let s = v.split(','), i = s[0].length % 3, r = s[0].substr(0, i), k = s[0].substr(i).match(/\d{3}/gi);
+        if (k) { r += (i ? '.' : '') + k.join('.'); }
+        e.value = s[1] != undefined ? r + ',' + s[1] : r;
+    }
+
+    function tambahData() {
+        const j = document.getElementById('jenis').value;
+        const t = document.getElementById('tanggal').value;
+        const k = document.getElementById('keterangan').value;
+        const n = parseFloat(document.getElementById('jumlah').value.replace(/\./g, '')) || 0;
+
+        if (!t || !k || n <= 0) return alert("Lengkapi data dengan benar!");
+
+        db.push({ id: Date.now(), j, t, k, n });
+        localStorage.setItem('myMoneyDB', JSON.stringify(db));
+        
+        document.getElementById('keterangan').value = '';
+        document.getElementById('jumlah').value = '';
+        render();
+    }
+
+    function render() {
+        const b = document.getElementById('isiTabel');
+        b.innerHTML = '';
+        let tin = 0, tout = 0;
+
+        db.sort((x, y) => new Date(y.t) - new Date(x.t)).forEach(i => {
+            if(i.j === 'masuk') tin += i.n; else tout += i.n;
+            const color = i.j === 'masuk' ? 'var(--income)' : 'var(--expense)';
+            const simbol = i.j === 'masuk' ? '+' : '-';
+
+            b.innerHTML += `<tr>
+                <td><small>${i.t}</small></td>
+                <td>
+                    <strong>${i.k}</strong><br>
+                    <span class="tag ${i.j === 'masuk' ? 'tag-in' : 'tag-out'}">${i.j.toUpperCase()}</span>
+                </td>
+                <td style="color:${color}"><b>${simbol}${i.n.toLocaleString('id-ID')}</b></td>
+                <td><button class="del-btn" onclick="hapusSatu(${i.id})">HAPUS</button></td>
+            </tr>`;
+        });
+
+        document.getElementById('totalIn').innerText = `Rp ${tin.toLocaleString('id-ID')}`;
+        document.getElementById('totalOut').innerText = `Rp ${tout.toLocaleString('id-ID')}`;
+        document.getElementById('totalBalance').innerText = `Rp ${(tin - tout).toLocaleString('id-ID')}`;
+    }
+
+    function hapusSatu(id) {
+        if(confirm("Hapus transaksi ini?")) {
+            db = db.filter(i => i.id !== id);
+            localStorage.setItem('myMoneyDB', JSON.stringify(db));
+            render();
+        }
+    }
+
+    function hapusSemua() {
+        if(confirm("Hapus semua data?")) {
+            db = [];
+            localStorage.removeItem('myMoneyDB');
+            render();
+        }
+    }
+
+    function copyToClipboard() {
+        if (db.length === 0) return alert("Data kosong!");
+        let tin = 0, tout = 0;
+        let txtIn = "*[ PEMASUKAN ]*\n";
+        let txtOut = "\n*[ PENGELUARAN ]*\n";
+        const sortedDb = [...db].sort((x, y) => new Date(x.t) - new Date(y.t));
+        let hasIn = false, hasOut = false;
+
+        sortedDb.forEach((i) => {
+            if(i.j === 'masuk') {
+                tin += i.n;
+                txtIn += `- (${i.t}) ${i.k}: Rp ${i.n.toLocaleString('id-ID')}\n`;
+                hasIn = true;
+            } else {
+                tout += i.n;
+                txtOut += `- (${i.t}) ${i.k}: Rp ${i.n.toLocaleString('id-ID')}\n`;
+                hasOut = true;
+            }
+        });
+
+        let finalTxt = "📋 *LAPORAN PENDAPATAN MANDIRI*\n";
+        finalTxt += "============================\n";
+        finalTxt += (hasIn ? txtIn : "*[ PEMASUKAN ]*\n(Kosong)\n");
+        finalTxt += (hasOut ? txtOut : "\n*[ PENGELUARAN ]*\n(Kosong)\n");
+        finalTxt += "============================\n";
+        finalTxt += `*TOTAL MASUK  : Rp ${tin.toLocaleString('id-ID')}*\n`;
+        finalTxt += `*TOTAL KELUAR : Rp ${tout.toLocaleString('id-ID')}*\n`;
+        finalTxt += `*PENDAPATAN BERSIH  : Rp ${(tin - tout).toLocaleString('id-ID')}*`;
+
+        const el = document.createElement('textarea');
+        el.value = finalTxt;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        alert("Wih mantap.. Laporan berhasil disalin!");
+    }
+</script>
+</body>
+</html>
