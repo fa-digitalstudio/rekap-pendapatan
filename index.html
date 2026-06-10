@@ -563,11 +563,11 @@
             <div class="filter-container">
                 <label>Tampilkan:</label>
                 <select id="filterType" onchange="changeFilter()">
+                    <option value="harian" selected>Harian</option>
                     <option value="semua">Semua Waktu</option>
-                    <option value="harian">Harian</option>
                     <option value="bulanan">Bulanan</option>
                 </select>
-                <input type="date" id="filterDate" onchange="render()" style="display: none;">
+                <input type="date" id="filterDate" onchange="render()" style="display: block;">
                 <input type="month" id="filterMonth" onchange="render()" style="display: none;">
             </div>
 
@@ -723,6 +723,18 @@
 
     let db = [];
     document.getElementById('tanggal').valueAsDate = new Date();
+    
+    // --- FITUR BARU: Memaksa filter default ke Harian hari ini ---
+    document.getElementById('filterType').value = 'harian';
+    changeFilter();
+
+    // --- FITUR BARU: Sinkronisasi Input Tanggal ---
+    document.getElementById('tanggal').addEventListener('change', function() {
+        document.getElementById('filterType').value = 'harian';
+        document.getElementById('filterDate').value = this.value;
+        changeFilter();
+    });
+
     muatData();
 
     // --- FUNGSI FILTER DATA ---
