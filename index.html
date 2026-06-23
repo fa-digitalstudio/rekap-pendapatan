@@ -91,19 +91,16 @@
                 <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition">Masuk</button>
             </form>
 
-            <!-- TAMBAHAN: Garis Pemisah -->
             <div class="flex items-center my-6">
                 <div class="flex-grow h-px bg-gray-300"></div>
                 <span class="px-4 text-sm text-gray-500">atau masuk dengan</span>
                 <div class="flex-grow h-px bg-gray-300"></div>
             </div>
 
-            <!-- TAMBAHAN: Tombol Masuk Google -->
             <button type="button" id="btn-login-google" class="w-full btn-google p-3 rounded-lg font-bold flex items-center justify-center gap-2">
                 <i class="fab fa-google text-red-500"></i> Masuk dengan Google
             </button>
 
-            <!-- === TAMBAHAN: TOMBOL MASUK ANONIM === -->
             <button type="button" id="btn-login-anonymous" class="w-full btn-anonymous p-3 rounded-lg font-bold flex items-center justify-center gap-2 mt-3">
                 <i class="fas fa-user-secret text-gray-200"></i> Masuk Tanpa Akun
             </button>
@@ -129,19 +126,16 @@
                 <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition">Daftar</button>
             </form>
 
-            <!-- TAMBAHAN: Garis Pemisah -->
             <div class="flex items-center my-6">
                 <div class="flex-grow h-px bg-gray-300"></div>
                 <span class="px-4 text-sm text-gray-500">atau daftar dengan</span>
                 <div class="flex-grow h-px bg-gray-300"></div>
             </div>
 
-            <!-- TAMBAHAN: Tombol Daftar / Masuk Google -->
             <button type="button" id="btn-register-google" class="w-full btn-google p-3 rounded-lg font-bold flex items-center justify-center gap-2">
                 <i class="fab fa-google text-red-500"></i> Daftar dengan Google
             </button>
 
-            <!-- === TAMBAHAN: TOMBOL ANONIM DI HALAMAN DAFTAR === -->
             <button type="button" id="btn-register-anonymous" class="w-full btn-anonymous p-3 rounded-lg font-bold flex items-center justify-center gap-2 mt-3">
                 <i class="fas fa-user-secret text-gray-200"></i> Coba Tanpa Akun
             </button>
@@ -158,7 +152,6 @@
                 <button id="btn-menu" class="text-2xl focus:outline-none"><i class="fas fa-bars"></i></button>
                 <h1 class="text-xl font-bold">DompetKu</h1>
             </div>
-            <!-- ✅ DI HEADER: HANYA TAMPILKAN FOTO / IKON SAJA -->
             <div class="text-sm font-medium flex items-center justify-center" id="user-display-header"></div>
         </header>
 
@@ -168,7 +161,6 @@
                 <button id="btn-close-menu" class="text-gray-500 hover:text-red-500 text-xl"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- ✅ AREA PROFIL DI SIDEBAR: FOTO + EMAIL LENGKAP -->
             <div id="sidebar-profile-area" class="sidebar-profile hidden">
                 <div class="flex items-center gap-3">
                     <img id="side-profile-img" src="" alt="Profil" class="w-10 h-10 rounded-full border-2 border-brand object-cover shadow">
@@ -345,30 +337,31 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     
     <script type="module">
-        // === TAMBAHAN: IMPOR FUNGSI ANONIM ===
+        // === TAMBAHAN: IMPOR FUNGSI sendEmailVerification ===
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInAnonymously, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onValue, query, orderByChild, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // ==========================================
         // 1. MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
         // ==========================================
         const firebaseConfig = {
-  apiKey: "AIzaSyDVc2I-leA_6xhNZkHwhMHF7oYKseACEV8",
-  authDomain: "rekap-4d158.firebaseapp.com",
-  databaseURL: "https://rekap-4d158-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "rekap-4d158",
-  storageBucket: "rekap-4d158.firebasestorage.app",
-  messagingSenderId: "779010595722",
-  appId: "1:779010595722:web:42f284b4fa280f7dfe0673"
-};
+          apiKey: "AIzaSyDVc2I-leA_6xhNZkHwhMHF7oYKseACEV8",
+          authDomain: "rekap-4d158.firebaseapp.com",
+          databaseURL: "https://rekap-4d158-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "rekap-4d158",
+          storageBucket: "rekap-4d158.firebasestorage.app",
+          messagingSenderId: "779010595722",
+          appId: "1:779010595722:web:42f284b4fa280f7dfe0673"
+        };
+        
         // ==========================================
         // 2. MASUKKAN API KEY GROQ ANDA DI SINI
         // ==========================================
-const _p = [
-  "gsk_XN0br9U", "fFSyikSm1o7pf", "WGdyb3FYsDGkxn66U5p", "ogniHZRWgMDsW"
-];
-const GROQ_API_KEY = _p.join("");
+        const _p = [
+          "gsk_XN0br9U", "fFSyikSm1o7pf", "WGdyb3FYsDGkxn66U5p", "ogniHZRWgMDsW"
+        ];
+        const GROQ_API_KEY = _p.join("");
 
         
         // Initialize Firebase
@@ -447,8 +440,18 @@ const GROQ_API_KEY = _p.join("");
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
             createUserWithEmailAndPassword(auth, email, password)
-                .then(() => {
-                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Akun berhasil didaftarkan!' });
+                .then((userCredential) => {
+                    // === TAMBAHAN: Kirim Link Verifikasi Email ===
+                    sendEmailVerification(userCredential.user).then(() => {
+                        Swal.fire({ 
+                            icon: 'success', 
+                            title: 'Pendaftaran Berhasil!', 
+                            text: 'Silakan cek kotak masuk atau spam email Anda untuk link verifikasi. Anda wajib memverifikasi email untuk menyimpan data.' 
+                        });
+                        // Logout otomatis agar user dipaksa memverifikasi email sebelum login kembali
+                        signOut(auth);
+                        showSection('login-section');
+                    });
                 })
                 .catch(error => {
                     Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
@@ -486,8 +489,8 @@ const GROQ_API_KEY = _p.join("");
                 .then(() => {
                     Swal.fire({ 
                         icon: 'success', 
-                        title: 'Berhasil Masuk Mode Percobaan', 
-                        text: '⚠️ Ingat: Data hanya tersimpan di perangkat ini. Jika hapus riwayat browser, data akan hilang permanen.' 
+                        title: 'Masuk Tanpa Akun', 
+                        text: '⚠️ Karena Anda masuk tanpa akun, Firebase tidak akan menyimpan data Anda ke server (Cloud). Data hanya tersimpan secara lokal sementara di layar ini.' 
                     });
                 })
                 .catch(error => {
@@ -601,6 +604,16 @@ const GROQ_API_KEY = _p.join("");
             e.preventDefault();
             if(!currentUser) return;
 
+            // === TAMBAHAN: Cegah User Anonim & Email Belum Verifikasi Menyimpan Data ===
+            if (currentUser.isAnonymous) {
+                Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Fitur simpan tidak tersedia untuk Mode Tanpa Akun.' });
+                return;
+            }
+            if (!currentUser.emailVerified) {
+                Swal.fire({ icon: 'warning', title: 'Email Belum Diverifikasi', text: 'Silakan verifikasi email Anda terlebih dahulu (cek kotak masuk/spam) agar bisa menyimpan data.' });
+                return;
+            }
+
             const type = document.getElementById('trans-type').value;
             // Ambil nominal, hilangkan titik sebelum diubah ke angka (Float)
             const rawAmount = document.getElementById('trans-amount').value.replace(/\./g, '');
@@ -645,6 +658,13 @@ const GROQ_API_KEY = _p.join("");
                 transactionsData.sort((a, b) => b.timestamp - a.timestamp);
                 renderTable();
                 calculateRecap();
+            }, (error) => {
+                // === TAMBAHAN: Cegah Error Tampil Jika Firebase Rules Memblokir (karena anonim/belum verifikasi) ===
+                if (currentUser && (currentUser.isAnonymous || !currentUser.emailVerified)) {
+                    console.warn("Baca data ditolak karena aturan keamanan (Anonim / Belum Verifikasi).");
+                } else {
+                    console.error("Gagal memuat data: ", error);
+                }
             });
         }
 
@@ -861,7 +881,7 @@ const GROQ_API_KEY = _p.join("");
         document.getElementById('ai-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-                        const inputField = document.getElementById('ai-input');
+            const inputField = document.getElementById('ai-input');
             const message = inputField.value.trim();
             if(!message) return;
 
