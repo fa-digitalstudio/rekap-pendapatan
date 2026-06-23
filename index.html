@@ -171,7 +171,7 @@
             <!-- ✅ AREA PROFIL DI SIDEBAR: FOTO + EMAIL LENGKAP -->
             <div id="sidebar-profile-area" class="sidebar-profile hidden">
                 <div class="flex items-center gap-3">
-                    <img id="side-profile-img" src="https://i.ibb.co.com/HfxfB4wr/canva-3d-user-profile-icon-on-blue-background-MAHFJu-GXOo-Y.png" alt="Profil" class="w-10 h-10 rounded-full border-2 border-brand object-cover shadow">
+                    <img id="side-profile-img" src="" alt="Profil" class="w-10 h-10 rounded-full border-2 border-brand object-cover shadow">
                     <div class="overflow-hidden">
                         <p class="text-xs text-gray-500">Aktif Sebagai</p>
                         <p id="side-profile-email" class="text-sm font-bold text-gray-800 truncate"></p>
@@ -537,7 +537,7 @@ const GROQ_API_KEY = _p.join("");
         // Tentang Aplikasi
         document.getElementById('btn-about').addEventListener('click', () => {
             Swal.fire({
-                title: 'DompetKu v1.0',
+                title: 'DompetKu v1.1',
                 html: '<p>Aplikasi Rekap Pendapatan khusus untuk mempermudah manajemen keuangan harian Anda.</p><br><p class="text-sm text-gray-500">Dibuat dengan dedikasi tinggi.</p>',
                 icon: 'info',
                 confirmButtonColor: '#10b981'
@@ -558,7 +558,7 @@ const GROQ_API_KEY = _p.join("");
                     // Akun Anonim
                     headerDisp.innerHTML = '<span class="text-xl">🗿</span>';
                     sideArea.classList.remove('hidden');
-                    sideImg.src = '';
+                    sideImg.src = 'https://i.ibb.co.com/whW87DYt/images-7.jpg';
                     sideImg.alt = 'Anonim';
                     sideImg.className = 'w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-lg';
                     sideImg.outerHTML = sideImg.outerHTML.replace('object-cover', '');
@@ -579,7 +579,7 @@ const GROQ_API_KEY = _p.join("");
                 else {
                     headerDisp.innerHTML = '<span class="text-xl"><i class="fas fa-user-circle"></i></span>';
                     sideArea.classList.remove('hidden');
-                    sideImg.src = '';
+                    sideImg.src = 'https://i.ibb.co.com/HfxfB4wr/canva-3d-user-profile-icon-on-blue-background-MAHFJu-GXOo-Y.png';
                     sideImg.alt = 'Email';
                     sideImg.className = 'w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand text-lg';
                     sideImg.innerHTML = '<i class="fas fa-envelope"></i>';
