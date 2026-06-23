@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Pendapatan & Pengeluaran</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#10b981', // Emerald 500
+                        brandDark: '#047857' // Emerald 700
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles */
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-closed { transform: translateX(-100%); }
+        .swiper-slide { display: flex; align-items: center; justify-content: center; height: 200px; border-radius: 12px; color: white; font-weight: bold; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .slide-1 { background: linear-gradient(135deg, #10b981, #3b82f6); }
+        .slide-2 { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+        .slide-3 { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+        .hidden { display: none !important; }
+        /* Style untuk SweetAlert agar menyesuaikan tema */
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm { background-color: #10b981 !important; }
+        
+        /* Animasi AI Chat */
+        .ai-message { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 0; transform: translateY(0); } }
+
+        /* Tambahan gaya tombol Google */
+        .btn-google {
+            border: 1px solid #d1d5db;
+            background-color: #ffffff;
+            color: #374151;
+            transition: all 0.2s ease;
+        }
+        .btn-google:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+        /* === TAMBAHAN: Gaya Tombol Anonim === */
+        .btn-anonymous {
+            border: 1px solid #6b7280;
+            background-color: #374151;
+            color: #f9fafb;
+            transition: all 0.2s ease;
+        }
+        .btn-anonymous:hover {
+            background-color: #1f2937;
+            border-color: #4b5563;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="login-section" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+            <h2 class="text-3xl font-bold text-center text-brand mb-6">Masuk</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="login-email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                </div>
+                <div class="relative">
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="login-password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                    <button type="button" onclick="togglePassword('login-password')" class="absolute right-3 top-9 text-gray-500 hover:text-brand"><i class="fas fa-eye"></i></button>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <button type="button" id="btn-forgot-password" class="text-brand hover:underline">Lupa Password?</button>
+                </div>
+                <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition">Masuk</button>
+            </form>
+
+            <!-- TAMBAHAN: Garis Pemisah -->
+            <div class="flex items-center my-6">
+                <div class="flex-grow h-px bg-gray-300"></div>
+                <span class="px-4 text-sm text-gray-500">atau masuk dengan</span>
+                <div class="flex-grow h-px bg-gray-300"></div>
+            </div>
+
+            <!-- TAMBAHAN: Tombol Masuk Google -->
+            <button type="button" id="btn-login-google" class="w-full btn-google p-3 rounded-lg font-bold flex items-center justify-center gap-2">
+                <i class="fab fa-google text-red-500"></i> Masuk dengan Google
+            </button>
+
+            <!-- === TAMBAHAN: TOMBOL MASUK ANONIM === -->
+            <button type="button" id="btn-login-anonymous" class="w-full btn-anonymous p-3 rounded-lg font-bold flex items-center justify-center gap-2 mt-3">
+                <i class="fas fa-user-secret text-gray-200"></i> Masuk Tanpa Akun
+            </button>
+            <p class="text-[11px] text-gray-500 text-center mt-1">⚠️ Data hanya tersimpan di perangkat ini — hapus riwayat = hilang permanen</p>
+
+            <p class="text-center mt-4 text-sm">Belum punya akun? <button onclick="showSection('register-section')" class="text-brand font-bold hover:underline">Daftar di sini</button></p>
+        </div>
+    </div>
+
+    <div id="register-section" class="min-h-screen flex items-center justify-center p-4 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+            <h2 class="text-3xl font-bold text-center text-brand mb-6">Daftar Akun</h2>
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="reg-email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                </div>
+                <div class="relative">
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="reg-password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
+                    <button type="button" onclick="togglePassword('reg-password')" class="absolute right-3 top-9 text-gray-500 hover:text-brand"><i class="fas fa-eye"></i></button>
+                </div>
+                <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition">Daftar</button>
+            </form>
+
+            <!-- TAMBAHAN: Garis Pemisah -->
+            <div class="flex items-center my-6">
+                <div class="flex-grow h-px bg-gray-300"></div>
+                <span class="px-4 text-sm text-gray-500">atau daftar dengan</span>
+                <div class="flex-grow h-px bg-gray-300"></div>
+            </div>
+
+            <!-- TAMBAHAN: Tombol Daftar / Masuk Google -->
+            <button type="button" id="btn-register-google" class="w-full btn-google p-3 rounded-lg font-bold flex items-center justify-center gap-2">
+                <i class="fab fa-google text-red-500"></i> Daftar dengan Google
+            </button>
+
+            <!-- === TAMBAHAN: TOMBOL ANONIM DI HALAMAN DAFTAR === -->
+            <button type="button" id="btn-register-anonymous" class="w-full btn-anonymous p-3 rounded-lg font-bold flex items-center justify-center gap-2 mt-3">
+                <i class="fas fa-user-secret text-gray-200"></i> Coba Tanpa Akun
+            </button>
+            <p class="text-[11px] text-gray-500 text-center mt-1">⚠️ Data hanya tersimpan di perangkat ini — hapus riwayat = hilang permanen</p>
+
+            <p class="text-center mt-4 text-sm">Sudah punya akun? <button onclick="showSection('login-section')" class="text-brand font-bold hover:underline">Masuk di sini</button></p>
+        </div>
+    </div>
+
+    <div id="dashboard-section" class="hidden min-h-screen flex flex-col">
+        
+        <header class="bg-brand text-white shadow-md p-4 flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-4">
+                <button id="btn-menu" class="text-2xl focus:outline-none"><i class="fas fa-bars"></i></button>
+                <h1 class="text-xl font-bold">DompetKu</h1>
+            </div>
+            <div class="text-sm font-medium" id="user-display"></div>
+        </header>
+
+        <div id="sidebar" class="sidebar sidebar-closed fixed inset-y-0 left-0 w-64 bg-white shadow-2xl z-50 p-6 flex flex-col">
+            <div class="flex justify-between items-center mb-8 pb-4 border-b">
+                <h2 class="text-xl font-bold text-brand">Menu Utama</h2>
+                <button id="btn-close-menu" class="text-gray-500 hover:text-red-500 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <nav class="flex-1 space-y-4">
+                <button id="btn-backup" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-blue-600 font-medium transition">
+                    <i class="fas fa-cloud-download-alt"></i> Backup Google Drive
+                </button>
+                <button id="btn-open-ai" class="w-full flex items-center gap-3 text-left p-3 hover:bg-purple-50 rounded-lg text-purple-600 font-bold transition border border-transparent hover:border-purple-200">
+                    <i class="fas fa-robot text-xl"></i> Asisten Pintar (AI)
+                </button>
+                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p class="text-xs text-gray-500 mb-1">Dukung Aplikasi Ini</p>
+                    <p class="font-bold text-brand text-sm"><i class="fas fa-wallet"></i> Donasi OVO</p>
+                    <p class="text-lg font-mono font-bold mt-1">085825444030</p>
+                    <p class="text-xs uppercase font-bold text-gray-600">A.N FARID ARIS</p>
+                </div>
+                <button id="btn-about" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg font-medium transition">
+                    <i class="fas fa-info-circle text-gray-500"></i> Tentang Aplikasi
+                </button>
+            </nav>
+            <button id="btn-logout" class="mt-auto w-full flex items-center gap-3 p-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold transition">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+        <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+
+        <main class="flex-1 p-4 max-w-4xl w-full mx-auto space-y-6 pb-24">
+            
+            <div class="swiper mySwiper rounded-2xl shadow-lg overflow-hidden">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide slide-1">Kelola Keuangan Lebih Mudah</div>
+                    <div class="swiper-slide slide-2">Catat Setiap Transaksi Anda</div>
+                    <div class="swiper-slide slide-3">Capai Target Finansialmu</div>
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-blue-500">
+                    <p class="text-sm text-gray-500 font-medium">Pendapatan Hari Ini</p>
+                    <h3 class="text-2xl font-bold text-blue-600" id="income-today">Rp 0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-orange-500">
+                    <p class="text-sm text-gray-500 font-medium">Pendapatan Kemarin</p>
+                    <h3 class="text-2xl font-bold text-orange-600" id="income-yesterday">Rp 0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-brand">
+                    <p class="text-sm text-gray-500 font-medium">Pendapatan Bulan Ini</p>
+                    <h3 class="text-2xl font-bold text-brand" id="income-month">Rp 0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-red-500">
+                    <p class="text-sm text-gray-500 font-medium">Pengeluaran Bulan Ini</p>
+                    <h3 class="text-2xl font-bold text-red-600" id="expense-month">Rp 0</h3>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-brand to-brandDark p-6 rounded-2xl shadow-lg text-white flex justify-between items-center">
+                <div>
+                    <p class="text-sm opacity-80 mb-1">Total Saldo Bersih (Bulan Ini)</p>
+                    <h2 class="text-3xl font-bold" id="net-balance">Rp 0</h2>
+                </div>
+                <i class="fas fa-wallet text-4xl opacity-50"></i>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-md">
+                <h3 class="text-lg font-bold mb-4 border-b pb-2">Tambah Transaksi</h3>
+                <form id="transaction-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm mb-1">Jenis</label>
+                        <select id="trans-type" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand">
+                            <option value="pemasukan">Pemasukan</option>
+                            <option value="pengeluaran">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Nominal (Rp)</label>
+                        <input type="text" inputmode="numeric" id="trans-amount" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required placeholder="100.000">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Keterangan</label>
+                        <input type="text" id="trans-note" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" placeholder="Cth: Hasil Grab, Beli Bensin..." required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Tanggal</label>
+                        <input type="date" id="trans-date" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition"><i class="fas fa-plus"></i> Simpan Transaksi</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-md overflow-hidden">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="text-lg font-bold">Riwayat Transaksi</h3>
+                    <div class="flex gap-2">
+                        <button id="btn-download-history" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition" title="Download Riwayat (CSV)"><i class="fas fa-file-export"></i></button>
+                        <button id="btn-delete-all" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition" title="Hapus Semua Data"><i class="fas fa-trash-alt"></i></button>
+                        <button id="btn-reload" class="text-brand hover:text-brandDark bg-green-50 p-2 rounded-full transition" title="Muat Ulang"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-600 text-sm">
+                                <th class="p-3 border-b">Tanggal & Waktu</th>
+                                <th class="p-3 border-b">Keterangan</th>
+                                <th class="p-3 border-b">Jenis</th>
+                                <th class="p-3 border-b text-right">Nominal</th>
+                                <th class="p-3 border-b text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-table-body" class="text-sm">
+                            </tbody>
+                        </table>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="bg-gray-800 text-gray-300 text-center p-6 mt-auto">
+            <p class="font-bold text-white mb-2">Aplikasi Rekap Pendapatan</p>
+            <p class="text-sm mb-4">Dikelola dengan <i class="fas fa-heart text-red-500"></i> & Firebase</p>
+            <div class="flex justify-center gap-4 text-xl">
+                <a href="#" class="hover:text-brand transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="hover:text-brand transition"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="hover:text-brand transition"><i class="fab fa-whatsapp"></i></a>
+            </div>
+            <p class="text-xs mt-4 opacity-50">&copy; 2026 Hak Cipta Dilindungi.</p>
+        </footer>
+    </div>
+
+    <div id="ai-section" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 z-[60] p-4 flex items-center justify-center">
+        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 text-white flex justify-between items-center shadow-md z-10">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white bg-opacity-20 p-2 rounded-full h-12 w-12 flex items-center justify-center">
+                        <i class="fas fa-robot text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">DompetKu AI Assistant</h2>
+                        <p class="text-xs text-purple-100"><i class="fas fa-bolt text-yellow-300"></i> Powered by Groq API</p>
+                    </div>
+                </div>
+                <button id="btn-close-ai" class="text-white hover:text-red-300 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full h-10 w-10 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="ai-chat-box" class="flex-1 p-5 overflow-y-auto bg-gray-50 flex flex-col gap-4">
+                <div class="flex items-start gap-3 w-4/5 ai-message">
+                    <div class="bg-gradient-to-br from-purple-500 to-indigo-500 text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-robot text-xs"></i></div>
+                    <div class="bg-white border border-purple-100 p-4 rounded-2xl rounded-tl-sm text-gray-700 shadow-sm text-sm">
+                        Halo! Saya adalah AI DompetKu. Saya bisa melihat total pemasukan, pengeluaran, dan saldo Anda bulan ini. Ada yang ingin dianalisis atau ditanyakan tentang keuangan Anda?
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-100">
+                <form id="ai-form" class="flex gap-2 relative">
+                    <input type="text" id="ai-input" class="flex-1 p-4 bg-gray-100 rounded-full outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white transition border border-transparent" placeholder="Ketik pertanyaan untuk AI di sini..." required>
+                    <button type="submit" class="bg-purple-600 text-white w-14 h-14 rounded-full hover:bg-purple-700 transition shadow-lg flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
+                </form>
+                <div class="text-center mt-2">
+                    <p class="text-[10px] text-gray-400">Pastikan API Key Groq Anda telah dimasukkan ke dalam konfigurasi script.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    
+    <script type="module">
+        // === TAMBAHAN: IMPOR FUNGSI ANONIM ===
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, push, onValue, query, orderByChild, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // ==========================================
+        // 1. MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
+        // ==========================================
+        const firebaseConfig = {
+  apiKey: "AIzaSyDVc2I-leA_6xhNZkHwhMHF7oYKseACEV8",
+  authDomain: "rekap-4d158.firebaseapp.com",
+  databaseURL: "https://rekap-4d158-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rekap-4d158",
+  storageBucket: "rekap-4d158.firebasestorage.app",
+  messagingSenderId: "779010595722",
+  appId: "1:779010595722:web:42f284b4fa280f7dfe0673"
+};
+        
+
+        // ==========================================
+        // 2. MASUKKAN API KEY GROQ ANDA DI SINI
+        // ==========================================
+const _p = [
+  "gsk_XN0br9U", "fFSyikSm1o7pf", "WGdyb3FYsDGkxn66U5p", "ogniHZRWgMDsW"
+];
+const GROQ_API_KEY = _p.join("");
+
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // --- TAMBAHAN: Penyedia Login Google ---
+        const googleProvider = new GoogleAuthProvider();
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+        // Variables
+        let currentUser = null;
+        let transactionsData = [];
+
+        // UI Helpers
+        window.showSection = (sectionId) => {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('register-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            if(sectionId === 'dashboard-section') {
+                initSwiper();
+            }
+        };
+
+        window.togglePassword = (inputId) => {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        };
+
+        const formatRupiah = (angka) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        };
+
+        // Animasi Titik Ribuan Input Nominal
+        const transAmountInput = document.getElementById('trans-amount');
+        transAmountInput.addEventListener('input', function(e) {
+            let value = this.value.replace(/[^0-9]/g, ''); // Buang selain angka
+            if (value !== '') {
+                this.value = parseInt(value, 10).toLocaleString('id-ID'); // Format lokal ID
+            } else {
+                this.value = '';
+            }
+        });
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('sidebar-closed');
+            overlay.classList.toggle('hidden');
+        };
+        document.getElementById('btn-menu').addEventListener('click', toggleSidebar);
+        document.getElementById('btn-close-menu').addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // Init Swiper
+        function initSwiper() {
+            new Swiper(".mySwiper", {
+                pagination: { el: ".swiper-pagination", dynamicBullets: true },
+                autoplay: { delay: 3000, disableOnInteraction: false },
+                loop: true
+            });
+        }
+
+        // Set Default Date to Today
+        document.getElementById('trans-date').valueAsDate = new Date();
+
+        // ==================== AUTHENTICATION ====================
+
+        // Register
+        document.getElementById('register-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Akun berhasil didaftarkan!' });
+                })
+                .catch(error => {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+                });
+        });
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(error => {
+                    Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: 'Email atau password salah!' });
+                });
+        });
+
+        // --- TAMBAHAN: Logika Masuk / Daftar Google ---
+        const handleGoogleAuth = () => {
+            signInWithPopup(auth, googleProvider)
+                .then(() => {
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Masuk menggunakan Google berhasil!' });
+                })
+                .catch(error => {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+                });
+        };
+
+        document.getElementById('btn-login-google').addEventListener('click', handleGoogleAuth);
+        document.getElementById('btn-register-google').addEventListener('click', handleGoogleAuth);
+
+        // === TAMBAHAN: LOGIKA MASUK ANONIM ===
+        const handleAnonymousAuth = () => {
+            signInAnonymously(auth)
+                .then(() => {
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: 'Berhasil Masuk Mode Percobaan', 
+                        text: '⚠️ Ingat: Data hanya tersimpan di perangkat ini. Jika hapus riwayat browser, data akan hilang permanen.' 
+                    });
+                })
+                .catch(error => {
+                    Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: error.message });
+                });
+        };
+
+        document.getElementById('btn-login-anonymous').addEventListener('click', handleAnonymousAuth);
+        document.getElementById('btn-register-anonymous').addEventListener('click', handleAnonymousAuth);
+
+        // Logout
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            Swal.fire({
+                title: 'Konfirmasi Logout',
+                text: "Yakin ingin keluar dari akun ini?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'Ya, Keluar!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    signOut(auth).then(() => {
+                        toggleSidebar();
+                    });
+                }
+            });
+        });
+
+        // Lupa Password
+        document.getElementById('btn-forgot-password').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            if(!email) {
+                Swal.fire({ icon: 'info', title: 'Perhatian', text: 'Masukkan email Anda di kolom email terlebih dahulu untuk mereset password.' });
+                return;
+            }
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    Swal.fire({ icon: 'success', title: 'Terkirim', text: 'Link reset password telah dikirim ke email Anda.' });
+                })
+                .catch(error => {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+                });
+        });
+
+        // Tentang Aplikasi
+        document.getElementById('btn-about').addEventListener('click', () => {
+            Swal.fire({
+                title: 'DompetKu v1.0',
+                html: '<p>Aplikasi Rekap Pendapatan khusus untuk mempermudah manajemen keuangan harian Anda.</p><br><p class="text-sm text-gray-500">Dibuat dengan dedikasi tinggi.</p>',
+                icon: 'info',
+                confirmButtonColor: '#10b981'
+            });
+            toggleSidebar();
+        });
+
+        // Auth State Observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                // === TAMBAHAN: Tampilkan info jika akun anonim ===
+                if (user.isAnonymous) {
+                    document.getElementById('user-display').innerText = '👤 Anonymous';
+                } else {
+                    document.getElementById('user-display').innerText = user.email;
+                }
+                showSection('dashboard-section');
+                loadData();
+            } else {
+                currentUser = null;
+                showSection('login-section');
+            }
+        });
+
+        // ==================== DATABASE & LOGIC ====================
+
+        // Simpan Transaksi
+        document.getElementById('transaction-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(!currentUser) return;
+
+            const type = document.getElementById('trans-type').value;
+            // Ambil nominal, hilangkan titik sebelum diubah ke angka (Float)
+            const rawAmount = document.getElementById('trans-amount').value.replace(/\./g, '');
+            const amount = parseFloat(rawAmount);
+            
+            const note = document.getElementById('trans-note').value;
+            const date = document.getElementById('trans-date').value;
+
+            if(isNaN(amount) || amount <= 0) {
+                 Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.' });
+                 return;
+            }
+
+            const transRef = ref(db, 'transactions/' + currentUser.uid);
+            push(transRef, {
+                type, amount, note, date, timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('transaction-form').reset();
+                document.getElementById('trans-date').valueAsDate = new Date();
+                
+                const Toast = Swal.mixin({
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true
+                });
+                Toast.fire({ icon: 'success', title: 'Transaksi berhasil disimpan' });
+
+            }).catch(error => {
+                Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: error.message });
+            });
+        });
+
+        // Load Data (Realtime)
+        function loadData() {
+            if(!currentUser) return;
+            const transRef = ref(db, 'transactions/' + currentUser.uid);
+            
+            onValue(transRef, (snapshot) => {
+                transactionsData = [];
+                snapshot.forEach((childSnapshot) => {
+                    transactionsData.push({ id: childSnapshot.key, ...childSnapshot.val() });
+                });
+                // Sort by date and then by timestamp descending
+                transactionsData.sort((a, b) => b.timestamp - a.timestamp);
+                renderTable();
+                calculateRecap();
+            });
+        }
+
+        // Muat Ulang Manual
+        document.getElementById('btn-reload').addEventListener('click', () => {
+            loadData();
+            const icon = document.querySelector('#btn-reload i');
+            icon.classList.add('fa-spin');
+            setTimeout(() => icon.classList.remove('fa-spin'), 1000);
+        });
+
+        // Render Tabel
+        function renderTable() {
+            const tbody = document.getElementById('transaction-table-body');
+            tbody.innerHTML = '';
+            
+            transactionsData.forEach(t => {
+                const isIncome = t.type === 'pemasukan';
+                const colorClass = isIncome ? 'text-green-600' : 'text-red-600';
+                const sign = isIncome ? '+' : '-';
+
+                // Menambahkan format waktu (Jam:Menit)
+                const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '--:--';
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 whitespace-nowrap">
+                        <div class="font-bold text-gray-700">${t.date}</div>
+                        <div class="text-xs text-gray-500"><i class="far fa-clock"></i> ${timeStr}</div>
+                    </td>
+                    <td class="p-3 font-medium">${t.note}</td>
+                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${isIncome ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.type.toUpperCase()}</span></td>
+                    <td class="p-3 text-right font-bold ${colorClass}">${sign} ${formatRupiah(t.amount)}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 p-1 bg-red-50 rounded transition" title="Hapus">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Fungsi Hapus Satu Transaksi
+        window.deleteTransaction = (id) => {
+            Swal.fire({
+                title: 'Hapus Transaksi?',
+                text: "Data ini tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const transRef = ref(db, 'transactions/' + currentUser.uid + '/' + id);
+                    remove(transRef).then(() => {
+                        Swal.fire('Terhapus!', 'Transaksi berhasil dihapus.', 'success');
+                    }).catch(error => {
+                        Swal.fire('Gagal!', error.message, 'error');
+                    });
+                }
+            });
+        };
+
+        // Fungsi Hapus Semua Transaksi
+        document.getElementById('btn-delete-all').addEventListener('click', () => {
+            if(transactionsData.length === 0) {
+                Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk dihapus.' });
+                return;
+            }
+            Swal.fire({
+                title: 'Hapus SEMUA Data?',
+                text: "Peringatan! Seluruh riwayat transaksi Anda akan hilang permanen.",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Bersihkan Semua!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const transRef = ref(db, 'transactions/' + currentUser.uid);
+                    remove(transRef).then(() => {
+                        Swal.fire('Bersih!', 'Semua data transaksi telah dihapus.', 'success');
+                    }).catch(error => {
+                        Swal.fire('Gagal!', error.message, 'error');
+                    });
+                }
+            });
+        });
+
+        // Kalkulasi Rekap (Hari ini, Kemarin, Bulan ini)
+        function calculateRecap() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+            const currentMonthStr = todayStr.substring(0, 7); // YYYY-MM
+
+            let incToday = 0, incYesterday = 0, incMonth = 0, expMonth = 0;
+
+            transactionsData.forEach(t => {
+                if (t.type === 'pemasukan') {
+                    if (t.date === todayStr) incToday += t.amount;
+                    if (t.date === yesterdayStr) incYesterday += t.amount;
+                    if (t.date.startsWith(currentMonthStr)) incMonth += t.amount;
+                } else if (t.type === 'pengeluaran') {
+                    if (t.date.startsWith(currentMonthStr)) expMonth += t.amount;
+                }
+            });
+
+            document.getElementById('income-today').innerText = formatRupiah(incToday);
+            document.getElementById('income-yesterday').innerText = formatRupiah(incYesterday);
+            document.getElementById('income-month').innerText = formatRupiah(incMonth);
+            document.getElementById('expense-month').innerText = formatRupiah(expMonth);
+            
+            const netBalance = incMonth - expMonth;
+            document.getElementById('net-balance').innerText = formatRupiah(netBalance);
+        }
+
+        // Fungsi Download CSV khusus
+        const downloadCSV = () => {
+            if(transactionsData.length === 0) {
+                Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk didownload.' });
+                return;
+            }
+            let csvContent = "Tanggal,Waktu,Keterangan,Jenis,Nominal\n";
+            transactionsData.forEach(t => {
+                const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '';
+                csvContent += `${t.date},${timeStr},${t.note},${t.type},${t.amount}\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `DompetKu_Riwayat_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // Event listener tombol download di riwayat
+        document.getElementById('btn-download-history').addEventListener('click', () => {
+             downloadCSV();
+             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'File CSV berhasil diunduh', showConfirmButton: false, timer: 3000 });
+        });
+
+        // Backup Data dengan Notifikasi GDrive
+        document.getElementById('btn-backup').addEventListener('click', () => {
+            if(transactionsData.length === 0) {
+                 Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk dibackup.' });
+                 return;
+            }
+            downloadCSV();
+            toggleSidebar();
+            Swal.fire({
+                title: 'Backup Berhasil!',
+                html: 'File <b>.csv</b> telah diunduh.<br><br>Silakan unggah file tersebut ke akun <b>Google Drive</b> Anda untuk keamanan.',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '<i class="fab fa-google-drive"></i> Buka Google Drive',
+                cancelButtonText: 'Tutup'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open('https://drive.google.com/', '_blank');
+                }
+            });
+        });
+
+        // ==================== GROQ AI ASSISTANT LOGIC ====================
+        const aiSection = document.getElementById('ai-section');
+        const aiChatBox = document.getElementById('ai-chat-box');
+        
+        document.getElementById('btn-open-ai').addEventListener('click', () => {
+            aiSection.classList.remove('hidden');
+            toggleSidebar();
+        });
+
+        document.getElementById('btn-close-ai').addEventListener('click', () => {
+            aiSection.classList.add('hidden');
+        });
+
+        // Fungsi Append Message
+        function addChatMessage(role, content) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex items-start gap-3 w-4/5 ai-message ${role === 'user' ? 'ml-auto flex-row-reverse' : ''}`;
+            
+            const iconHTML = role === 'user' 
+                ? `<div class="bg-gradient-to-br from-brand to-brandDark text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-user text-xs"></i></div>`
+                : `<div class="bg-gradient-to-br from-purple-500 to-indigo-500 text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-robot text-xs"></i></div>`;
+            
+            const bubbleClasses = role === 'user'
+                ? 'bg-brand text-white border-transparent rounded-tr-sm'
+                : 'bg-white border-purple-100 text-gray-700 rounded-tl-sm shadow-sm';
+
+            wrapper.innerHTML = `
+                ${iconHTML}
+                <div class="border p-4 rounded-2xl ${bubbleClasses} text-sm whitespace-pre-wrap leading-relaxed">${content}</div>
+            `;
+            
+            aiChatBox.appendChild(wrapper);
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
+            return wrapper.querySelector('.border'); // return text container if we want to update it
+        }
+
+        // Form Submit AI
+        document.getElementById('ai-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputField = document.getElementById('ai-input');
+            const message = inputField.value.trim();
+            if(!message) return;
+
+            addChatMessage('user', message);
+            inputField.value = '';
+
+            // Loading state
+            const loadingBubble = addChatMessage('ai', '<i class="fas fa-circle-notch fa-spin"></i> Sedang menganalisis...');
+
+            try {
+                // Ambil konteks terbaru
+                const ctxPemasukan = document.getElementById('income-month').innerText;
+                const ctxPengeluaran = document.getElementById('expense-month').innerText;
+                const ctxSaldo = document.getElementById('net-balance').innerText;
+
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${GROQ_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'llama3-8b-8192', // Model Llama3 yang cepat & ringan via Groq
+                        messages: [
+                            { 
+                                role: 'system', 
+                                content: `Anda adalah DompetKu AI, asisten keuangan yang cerdas, ramah, dan profesional. Gunakan bahasa Indonesia. 
+                                Data keuangan user saat ini: Total Pemasukan Bulan Ini: ${ctxPemasukan}, Total Pengeluaran Bulan Ini: ${ctxSaldo}, Total Saldo Bersih: ${ctxSaldo}. 
+                                Jawablah pertanyaan user berdasarkan data tersebut. Berikan saran yang memotivasi jika saldo minus, dan apresiasi jika saldo plus. Gunakan tag HTML dasar bila perlu (seperti <b> atau <i>) untuk memperindah teks.`
+                            },
+                            { role: 'user', content: message }
+                        ]
+                    })
+                });
+
+                if(!response.ok) throw new Error('Cek kembali API Key Groq Anda.');
+
+                const data = await response.json();
+                if(data.choices && data.choices.length > 0) {
+                    loadingBubble.innerHTML = data.choices[0].message.content;
+                } else {
+                    loadingBubble.innerHTML = "Maaf, sistem AI sedang mengalami gangguan.";
+                }
+
+            } catch (error) {
+                loadingBubble.innerHTML = `<span class="text-red-500 font-bold"><i class="fas fa-exclamation-triangle"></i> Gagal!</span><br>Pastikan API Key GROQ Anda valid dan tersambung internet.<br><br>Error: ${error.message}`;
+            }
+        });
+
+    </script>
+</body>
+</html>
