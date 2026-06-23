@@ -60,6 +60,14 @@
             background-color: #1f2937;
             border-color: #4b5563;
         }
+        /* === TAMBAHAN: Gaya Area Profil di Sidebar === */
+        .sidebar-profile {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #a7f3d0;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -150,14 +158,27 @@
                 <button id="btn-menu" class="text-2xl focus:outline-none"><i class="fas fa-bars"></i></button>
                 <h1 class="text-xl font-bold">DompetKu</h1>
             </div>
-            <div class="text-sm font-medium" id="user-display"></div>
+            <!-- ✅ DI HEADER: HANYA TAMPILKAN FOTO / IKON SAJA -->
+            <div class="text-sm font-medium flex items-center justify-center" id="user-display-header"></div>
         </header>
 
         <div id="sidebar" class="sidebar sidebar-closed fixed inset-y-0 left-0 w-64 bg-white shadow-2xl z-50 p-6 flex flex-col">
-            <div class="flex justify-between items-center mb-8 pb-4 border-b">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b">
                 <h2 class="text-xl font-bold text-brand">Menu Utama</h2>
                 <button id="btn-close-menu" class="text-gray-500 hover:text-red-500 text-xl"><i class="fas fa-times"></i></button>
             </div>
+
+            <!-- ✅ AREA PROFIL DI SIDEBAR: FOTO + EMAIL LENGKAP -->
+            <div id="sidebar-profile-area" class="sidebar-profile hidden">
+                <div class="flex items-center gap-3">
+                    <img id="side-profile-img" src="" alt="Profil" class="w-10 h-10 rounded-full border-2 border-brand object-cover shadow">
+                    <div class="overflow-hidden">
+                        <p class="text-xs text-gray-500">Aktif Sebagai</p>
+                        <p id="side-profile-email" class="text-sm font-bold text-gray-800 truncate"></p>
+                    </div>
+                </div>
+            </div>
+
             <nav class="flex-1 space-y-4">
                 <button id="btn-backup" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-blue-600 font-medium transition">
                     <i class="fas fa-cloud-download-alt"></i> Backup Google Drive
@@ -526,16 +547,47 @@ const GROQ_API_KEY = _p.join("");
             toggleSidebar();
         });
 
-        // Auth State Observer
+        // ✅ DIPERBARUI: Tampilan Header & Sidebar
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                // === TAMBAHAN: Tampilkan info jika akun anonim ===
+                const headerDisp = document.getElementById('user-display-header');
+                const sideArea = document.getElementById('sidebar-profile-area');
+                const sideImg = document.getElementById('side-profile-img');
+                const sideMail = document.getElementById('side-profile-email');
+
                 if (user.isAnonymous) {
-                    document.getElementById('user-display').innerText = '👤 Anonymous';
-                } else {
-                    document.getElementById('user-display').innerText = user.email;
+                    // Akun Anonim
+                    headerDisp.innerHTML = '<span class="text-xl">👤</span>';
+                    sideArea.classList.remove('hidden');
+                    sideImg.src = '';
+                    sideImg.alt = 'Anonim';
+                    sideImg.className = 'w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-lg';
+                    sideImg.outerHTML = sideImg.outerHTML.replace('object-cover', '');
+                    sideImg.insertAdjacentHTML('afterbegin', '<i class="fas fa-user-secret"></i>');
+                    sideMail.textContent = 'Masuk Tanpa Akun';
+                } 
+                // Akun Google: Foto di Header + Foto & Email Lengkap di Sidebar
+                else if (user.providerData.some(p => p.providerId === 'google.com') && user.photoURL) {
+                    headerDisp.innerHTML = `
+                        <img src="${user.photoURL}" alt="Profil" class="w-8 h-8 rounded-full border border-white shadow-sm object-cover">
+                    `;
+                    sideArea.classList.remove('hidden');
+                    sideImg.src = user.photoURL;
+                    sideImg.className = 'w-10 h-10 rounded-full border-2 border-brand object-cover shadow';
+                    sideMail.textContent = user.email;
+                } 
+                // Akun Email Biasa: Ikon Sederhana + Email di Sidebar
+                else {
+                    headerDisp.innerHTML = '<span class="text-xl"><i class="fas fa-user-circle"></i></span>';
+                    sideArea.classList.remove('hidden');
+                    sideImg.src = '';
+                    sideImg.alt = 'Email';
+                    sideImg.className = 'w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand text-lg';
+                    sideImg.innerHTML = '<i class="fas fa-envelope"></i>';
+                    sideMail.textContent = user.email;
                 }
+
                 showSection('dashboard-section');
                 loadData();
             } else {
@@ -810,7 +862,8 @@ const GROQ_API_KEY = _p.join("");
         // Form Submit AI
         document.getElementById('ai-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const inputField = document.getElementById('ai-input');
+
+                        const inputField = document.getElementById('ai-input');
             const message = inputField.value.trim();
             if(!message) return;
 
@@ -838,7 +891,7 @@ const GROQ_API_KEY = _p.join("");
                             { 
                                 role: 'system', 
                                 content: `Anda adalah DompetKu AI, asisten keuangan yang cerdas, ramah, dan profesional. Gunakan bahasa Indonesia. 
-                                Data keuangan user saat ini: Total Pemasukan Bulan Ini: ${ctxPemasukan}, Total Pengeluaran Bulan Ini: ${ctxSaldo}, Total Saldo Bersih: ${ctxSaldo}. 
+                                Data keuangan user saat ini: Total Pemasukan Bulan Ini: ${ctxPemasukan}, Total Pengeluaran Bulan Ini: ${ctxPengeluaran}, Total Saldo Bersih: ${ctxSaldo}. 
                                 Jawablah pertanyaan user berdasarkan data tersebut. Berikan saran yang memotivasi jika saldo minus, dan apresiasi jika saldo plus. Gunakan tag HTML dasar bila perlu (seperti <b> atau <i>) untuk memperindah teks.`
                             },
                             { role: 'user', content: message }
@@ -863,3 +916,8 @@ const GROQ_API_KEY = _p.join("");
     </script>
 </body>
 </html>
+
+            
+            
+            
+            
