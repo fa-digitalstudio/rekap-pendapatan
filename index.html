@@ -49,7 +49,7 @@
             background-color: #f9fafb;
             border-color: #9ca3af;
         }
-        /* === TAMBAHAN: Gaya Tombol Anonim === */
+        /* Gaya Tombol Anonim */
         .btn-anonymous {
             border: 1px solid #6b7280;
             background-color: #374151;
@@ -60,7 +60,7 @@
             background-color: #1f2937;
             border-color: #4b5563;
         }
-        /* === TAMBAHAN: Gaya Area Profil di Sidebar === */
+        /* Gaya Area Profil di Sidebar */
         .sidebar-profile {
             background: linear-gradient(135deg, #ecfdf5, #d1fae5);
             border-radius: 0.75rem;
@@ -171,30 +171,42 @@
                 </div>
             </div>
 
-            <nav class="flex-1 space-y-4">
+            <nav class="flex-1 space-y-3">
+                <button id="btn-dashboard-nav" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-gray-700 font-medium transition">
+                    <i class="fas fa-home text-brand"></i> Dashboard
+                </button>
+                <button id="btn-utang-nav" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-gray-700 font-medium transition">
+                    <i class="fas fa-book text-orange-500"></i> Catatan Utang
+                </button>
                 <button id="btn-backup" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-blue-600 font-medium transition">
                     <i class="fas fa-cloud-download-alt"></i> Backup Google Drive
                 </button>
                 <button id="btn-open-ai" class="w-full flex items-center gap-3 text-left p-3 hover:bg-purple-50 rounded-lg text-purple-600 font-bold transition border border-transparent hover:border-purple-200">
                     <i class="fas fa-robot text-xl"></i> Asisten Pintar (AI)
                 </button>
-                <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div class="p-4 bg-green-50 rounded-lg border border-green-200 mt-2">
                     <p class="text-xs text-gray-500 mb-1">Dukung Aplikasi Ini</p>
                     <p class="font-bold text-brand text-sm"><i class="fas fa-wallet"></i> Donasi OVO</p>
                     <p class="text-lg font-mono font-bold mt-1">085825444030</p>
-                    <p class="text-xs uppercase font-bold text-gray-600">A.N FARID ARIS</p>
+                    <p class="text-xs uppercase font-bold text-gray-600">A.N ANDI FARID ARIS</p> 
                 </div>
                 <button id="btn-about" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg font-medium transition">
                     <i class="fas fa-info-circle text-gray-500"></i> Tentang Aplikasi
                 </button>
             </nav>
-            <button id="btn-logout" class="mt-auto w-full flex items-center gap-3 p-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-bold transition">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+            
+            <div class="mt-auto space-y-2 pt-4 border-t">
+                <button id="btn-delete-account" class="w-full flex items-center gap-3 p-3 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg font-bold transition">
+                    <i class="fas fa-user-times"></i> Hapus Akun
+                </button>
+                <button id="btn-logout" class="w-full flex items-center gap-3 p-3 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-bold transition">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
         </div>
         <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
-        <main class="flex-1 p-4 max-w-4xl w-full mx-auto space-y-6 pb-24">
+        <main id="main-dashboard" class="flex-1 p-4 max-w-4xl w-full mx-auto space-y-6 pb-24">
             
             <div class="swiper mySwiper rounded-2xl shadow-lg overflow-hidden">
                 <div class="swiper-wrapper">
@@ -281,11 +293,64 @@
                             </tr>
                         </thead>
                         <tbody id="transaction-table-body" class="text-sm">
-                            </tbody>
-                        </table>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </main>
 
+        <main id="main-utang" class="hidden flex-1 p-4 max-w-4xl w-full mx-auto space-y-6 pb-24">
+            <div class="flex items-center gap-4 border-b pb-4">
+                <button id="btn-back-dashboard" class="text-gray-600 hover:text-brand bg-white px-4 py-2 rounded-lg shadow-sm font-bold border"><i class="fas fa-arrow-left mr-2"></i> Kembali</button>
+                <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-book text-orange-500 mr-2"></i> Catatan Utang</h2>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-md">
+                <h3 class="text-lg font-bold mb-4 border-b pb-2">Tambah Catatan</h3>
+                <form id="utang-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm mb-1">Jenis Catatan</label>
+                        <select id="utang-type" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand">
+                            <option value="utang">Saya Berutang (Utang)</option>
+                            <option value="piutang">Orang Berutang Ke Saya (Piutang)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Nama Orang</label>
+                        <input type="text" id="utang-name" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" placeholder="Nama..." required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Nominal (Rp)</label>
+                        <input type="text" inputmode="numeric" id="utang-amount" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required placeholder="100.000">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1">Tenggat Waktu / Tanggal</label>
+                        <input type="date" id="utang-date" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit" class="w-full bg-orange-500 text-white p-3 rounded-lg font-bold hover:bg-orange-600 transition"><i class="fas fa-save"></i> Simpan Catatan</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-md overflow-hidden">
+                <h3 class="text-lg font-bold mb-4 border-b pb-2">Daftar Utang / Piutang</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-600 text-sm">
+                                <th class="p-3 border-b">Tgl / Tenggat</th>
+                                <th class="p-3 border-b">Nama</th>
+                                <th class="p-3 border-b">Jenis</th>
+                                <th class="p-3 border-b text-right">Nominal</th>
+                                <th class="p-3 border-b text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="utang-table-body" class="text-sm">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
 
         <footer class="bg-gray-800 text-gray-300 text-center p-6 mt-auto">
@@ -309,7 +374,7 @@
                     </div>
                     <div>
                         <h2 class="text-xl font-bold">DompetKu AI Assistant</h2>
-                        <p class="text-xs text-purple-100"><i class="fas fa-bolt text-yellow-300"></i> Powered by Groq API</p>
+                        <p class="text-xs text-purple-100"><i class="fas fa-bolt text-yellow-300"></i> Powered by OpenRouter</p>
                     </div>
                 </div>
                 <button id="btn-close-ai" class="text-white hover:text-red-300 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full h-10 w-10 transition"><i class="fas fa-times"></i></button>
@@ -328,7 +393,7 @@
                     <button type="submit" class="bg-purple-600 text-white w-14 h-14 rounded-full hover:bg-purple-700 transition shadow-lg flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
                 </form>
                 <div class="text-center mt-2">
-                    <p class="text-[10px] text-gray-400">Pastikan API Key Groq Anda telah dimasukkan ke dalam konfigurasi script.</p>
+                    <p class="text-[10px] text-gray-400">Pastikan API Key OpenRouter Anda telah dimasukkan ke dalam konfigurasi script.</p>
                 </div>
             </div>
         </div>
@@ -337,9 +402,9 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     
     <script type="module">
-        // === TAMBAHAN: IMPOR FUNGSI sendEmailVerification ===
+        // === IMPORT FUNGSI FIREBASE (Termasuk deleteUser) ===
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInAnonymously, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInAnonymously, sendEmailVerification, deleteUser } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onValue, query, orderByChild, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // ==========================================
@@ -356,26 +421,22 @@
         };
         
         // ==========================================
-        // 2. MASUKKAN API KEY GROQ ANDA DI SINI
+        // 2. MASUKKAN API KEY OPENROUTER ANDA DI SINI
         // ==========================================
-        const _p = [
-          "gsk_XN0br9U", "fFSyikSm1o7pf", "WGdyb3FYsDGkxn66U5p", "ogniHZRWgMDsW"
-        ];
-        const GROQ_API_KEY = _p.join("");
+        const OPENROUTER_API_KEY = "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";
 
-        
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // --- TAMBAHAN: Penyedia Login Google ---
         const googleProvider = new GoogleAuthProvider();
         googleProvider.setCustomParameters({ prompt: 'select_account' });
 
         // Variables
         let currentUser = null;
         let transactionsData = [];
+        let utangData = [];
 
         // UI Helpers
         window.showSection = (sectionId) => {
@@ -386,6 +447,9 @@
             
             if(sectionId === 'dashboard-section') {
                 initSwiper();
+                // Pastikan dashboard utama terbuka secara default
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                document.getElementById('main-utang').classList.add('hidden');
             }
         };
 
@@ -398,16 +462,20 @@
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
         };
 
-        // Animasi Titik Ribuan Input Nominal
-        const transAmountInput = document.getElementById('trans-amount');
-        transAmountInput.addEventListener('input', function(e) {
-            let value = this.value.replace(/[^0-9]/g, ''); // Buang selain angka
-            if (value !== '') {
-                this.value = parseInt(value, 10).toLocaleString('id-ID'); // Format lokal ID
-            } else {
-                this.value = '';
-            }
-        });
+        // Animasi Titik Ribuan Input Nominal Transaksi & Utang
+        const setupNumberInput = (inputId) => {
+            const input = document.getElementById(inputId);
+            input.addEventListener('input', function(e) {
+                let value = this.value.replace(/[^0-9]/g, ''); 
+                if (value !== '') {
+                    this.value = parseInt(value, 10).toLocaleString('id-ID'); 
+                } else {
+                    this.value = '';
+                }
+            });
+        }
+        setupNumberInput('trans-amount');
+        setupNumberInput('utang-amount');
 
         // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
@@ -420,8 +488,28 @@
         document.getElementById('btn-close-menu').addEventListener('click', toggleSidebar);
         overlay.addEventListener('click', toggleSidebar);
 
+        // Navigasi Internal Dashboard <-> Utang
+        document.getElementById('btn-dashboard-nav').addEventListener('click', () => {
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            document.getElementById('main-utang').classList.add('hidden');
+            toggleSidebar();
+        });
+
+        document.getElementById('btn-utang-nav').addEventListener('click', () => {
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('main-utang').classList.remove('hidden');
+            toggleSidebar();
+            loadUtangData(); // Muat data utang ketika diklik
+        });
+
+        document.getElementById('btn-back-dashboard').addEventListener('click', () => {
+            document.getElementById('main-utang').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+        });
+
         // Init Swiper
         function initSwiper() {
+            if(document.querySelector('.swiper-initialized')) return;
             new Swiper(".mySwiper", {
                 pagination: { el: ".swiper-pagination", dynamicBullets: true },
                 autoplay: { delay: 3000, disableOnInteraction: false },
@@ -429,79 +517,54 @@
             });
         }
 
-        // Set Default Date to Today
         document.getElementById('trans-date').valueAsDate = new Date();
+        document.getElementById('utang-date').valueAsDate = new Date();
 
         // ==================== AUTHENTICATION ====================
 
-        // Register
         document.getElementById('register-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    // === TAMBAHAN: Kirim Link Verifikasi Email ===
                     sendEmailVerification(userCredential.user).then(() => {
                         Swal.fire({ 
                             icon: 'success', 
                             title: 'Pendaftaran Berhasil!', 
-                            text: 'Silakan cek kotak masuk atau spam email Anda untuk link verifikasi. Anda wajib memverifikasi email untuk menyimpan data.' 
+                            text: 'Silakan cek kotak masuk/spam email Anda untuk link verifikasi. Anda wajib memverifikasi email untuk menyimpan data.' 
                         });
-                        // Logout otomatis agar user dipaksa memverifikasi email sebelum login kembali
                         signOut(auth);
                         showSection('login-section');
                     });
                 })
-                .catch(error => {
-                    Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
-                });
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
         });
 
-        // Login
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             signInWithEmailAndPassword(auth, email, password)
-                .catch(error => {
-                    Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: 'Email atau password salah!' });
-                });
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: 'Email atau password salah!' }));
         });
 
-        // --- TAMBAHAN: Logika Masuk / Daftar Google ---
         const handleGoogleAuth = () => {
             signInWithPopup(auth, googleProvider)
-                .then(() => {
-                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Masuk menggunakan Google berhasil!' });
-                })
-                .catch(error => {
-                    Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
-                });
+                .then(() => Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Masuk menggunakan Google berhasil!' }))
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
         };
-
         document.getElementById('btn-login-google').addEventListener('click', handleGoogleAuth);
         document.getElementById('btn-register-google').addEventListener('click', handleGoogleAuth);
 
-        // === TAMBAHAN: LOGIKA MASUK ANONIM ===
         const handleAnonymousAuth = () => {
             signInAnonymously(auth)
-                .then(() => {
-                    Swal.fire({ 
-                        icon: 'success', 
-                        title: 'Masuk Tanpa Akun', 
-                        text: '⚠️ Karena Anda masuk tanpa akun, Firebase tidak akan menyimpan data Anda ke server (Cloud). Data hanya tersimpan secara lokal sementara di layar ini.' 
-                    });
-                })
-                .catch(error => {
-                    Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: error.message });
-                });
+                .then(() => Swal.fire({ icon: 'success', title: 'Masuk Tanpa Akun', text: '⚠️ Data hanya tersimpan secara lokal sementara.' }))
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: error.message }));
         };
-
         document.getElementById('btn-login-anonymous').addEventListener('click', handleAnonymousAuth);
         document.getElementById('btn-register-anonymous').addEventListener('click', handleAnonymousAuth);
 
-        // Logout
         document.getElementById('btn-logout').addEventListener('click', () => {
             Swal.fire({
                 title: 'Konfirmasi Logout',
@@ -510,45 +573,55 @@
                 showCancelButton: true,
                 confirmButtonColor: '#10b981',
                 cancelButtonColor: '#ef4444',
-                confirmButtonText: 'Ya, Keluar!',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Ya, Keluar!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    signOut(auth).then(() => {
+                    signOut(auth).then(() => toggleSidebar());
+                }
+            });
+        });
+
+        // TAMBAHAN: HAPUS AKUN
+        document.getElementById('btn-delete-account').addEventListener('click', () => {
+            Swal.fire({
+                title: 'Hapus Akun Permanen?',
+                text: "Semua data transaksi dan akun Anda akan dihapus dan tidak bisa dikembalikan!",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Hapus Akun!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed && currentUser) {
+                    deleteUser(currentUser).then(() => {
+                        Swal.fire('Terhapus!', 'Akun Anda berhasil dihapus.', 'success');
                         toggleSidebar();
+                    }).catch((error) => {
+                        if(error.code === 'auth/requires-recent-login') {
+                            Swal.fire('Gagal!', 'Untuk alasan keamanan, Anda harus login ulang sebelum menghapus akun.', 'error');
+                            signOut(auth);
+                        } else {
+                            Swal.fire('Gagal!', error.message, 'error');
+                        }
                     });
                 }
             });
         });
 
-        // Lupa Password
         document.getElementById('btn-forgot-password').addEventListener('click', () => {
             const email = document.getElementById('login-email').value;
-            if(!email) {
-                Swal.fire({ icon: 'info', title: 'Perhatian', text: 'Masukkan email Anda di kolom email terlebih dahulu untuk mereset password.' });
-                return;
-            }
+            if(!email) return Swal.fire({ icon: 'info', title: 'Perhatian', text: 'Masukkan email Anda di kolom email terlebih dahulu.' });
             sendPasswordResetEmail(auth, email)
-                .then(() => {
-                    Swal.fire({ icon: 'success', title: 'Terkirim', text: 'Link reset password telah dikirim ke email Anda.' });
-                })
-                .catch(error => {
-                    Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
-                });
+                .then(() => Swal.fire({ icon: 'success', title: 'Terkirim', text: 'Link reset password telah dikirim.' }))
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
         });
 
-        // Tentang Aplikasi
         document.getElementById('btn-about').addEventListener('click', () => {
-            Swal.fire({
-                title: 'DompetKu v1.1',
-                html: '<p>Aplikasi Rekap Pendapatan khusus untuk mempermudah manajemen keuangan harian Anda.</p><br><p class="text-sm text-gray-500">Dibuat dengan dedikasi tinggi.</p>',
-                icon: 'info',
-                confirmButtonColor: '#10b981'
-            });
+            Swal.fire({ title: 'DompetKu v1.2', html: '<p>Aplikasi Rekap Pendapatan khusus untuk mempermudah manajemen keuangan harian Anda.</p>', icon: 'info', confirmButtonColor: '#10b981' });
             toggleSidebar();
         });
 
-        // ✅ DIPERBARUI: Tampilan Header & Sidebar
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -558,117 +631,68 @@
                 const sideMail = document.getElementById('side-profile-email');
 
                 if (user.isAnonymous) {
-                    // Akun Anonim
                     headerDisp.innerHTML = '<span class="text-xl">🗿</span>';
                     sideArea.classList.remove('hidden');
                     sideImg.src = 'https://i.ibb.co.com/whW87DYt/images-7.jpg';
-                    sideImg.alt = 'Anonim';
                     sideImg.className = 'w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-lg';
-                    sideImg.outerHTML = sideImg.outerHTML.replace('object-cover', '');
-                    sideImg.insertAdjacentHTML('afterbegin', '<i class="fas fa-user-secret"></i>');
                     sideMail.textContent = 'Masuk Tanpa Akun';
-                } 
-                // Akun Google: Foto di Header + Foto & Email Lengkap di Sidebar
-                else if (user.providerData.some(p => p.providerId === 'google.com') && user.photoURL) {
-                    headerDisp.innerHTML = `
-                        <img src="${user.photoURL}" alt="Profil" class="w-8 h-8 rounded-full border border-white shadow-sm object-cover">
-                    `;
+                } else if (user.providerData.some(p => p.providerId === 'google.com') && user.photoURL) {
+                    headerDisp.innerHTML = `<img src="${user.photoURL}" alt="Profil" class="w-8 h-8 rounded-full border border-white shadow-sm object-cover">`;
                     sideArea.classList.remove('hidden');
                     sideImg.src = user.photoURL;
                     sideImg.className = 'w-10 h-10 rounded-full border-2 border-brand object-cover shadow';
                     sideMail.textContent = user.email;
-                } 
-                // Akun Email Biasa: Ikon Sederhana + Email di Sidebar
-                else {
+                } else {
                     headerDisp.innerHTML = '<span class="text-xl"><i class="fas fa-user-circle"></i></span>';
                     sideArea.classList.remove('hidden');
                     sideImg.src = 'https://i.ibb.co.com/HfxfB4wr/canva-3d-user-profile-icon-on-blue-background-MAHFJu-GXOo-Y.png';
-                    sideImg.alt = 'Email';
                     sideImg.className = 'w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand text-lg';
-                    sideImg.innerHTML = '<i class="fas fa-envelope"></i>';
                     sideMail.textContent = user.email;
                 }
-
                 showSection('dashboard-section');
                 loadData();
+                loadUtangData(); // Muat data utang di awal
             } else {
                 currentUser = null;
                 showSection('login-section');
             }
         });
 
-        // ==================== DATABASE & LOGIC ====================
+        // ==================== DATABASE TRANSAKSI ====================
 
-        // Simpan Transaksi
         document.getElementById('transaction-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if(!currentUser) return;
-
-            // === TAMBAHAN: Cegah User Anonim & Email Belum Verifikasi Menyimpan Data ===
-            if (currentUser.isAnonymous) {
-                Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Fitur simpan tidak tersedia untuk Mode Tanpa Akun.' });
-                return;
-            }
-            if (!currentUser.emailVerified) {
-                Swal.fire({ icon: 'warning', title: 'Email Belum Diverifikasi', text: 'Silakan verifikasi email Anda terlebih dahulu (cek kotak masuk/spam) agar bisa menyimpan data.' });
-                return;
-            }
+            if (currentUser.isAnonymous) return Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Fitur simpan tidak tersedia untuk Mode Tanpa Akun.' });
+            if (!currentUser.emailVerified) return Swal.fire({ icon: 'warning', title: 'Email Belum Diverifikasi', text: 'Silakan verifikasi email Anda terlebih dahulu.' });
 
             const type = document.getElementById('trans-type').value;
-            // Ambil nominal, hilangkan titik sebelum diubah ke angka (Float)
             const rawAmount = document.getElementById('trans-amount').value.replace(/\./g, '');
             const amount = parseFloat(rawAmount);
-            
             const note = document.getElementById('trans-note').value;
             const date = document.getElementById('trans-date').value;
 
-            if(isNaN(amount) || amount <= 0) {
-                 Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.' });
-                 return;
-            }
+            if(isNaN(amount) || amount <= 0) return Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.' });
 
             const transRef = ref(db, 'transactions/' + currentUser.uid);
-            push(transRef, {
-                type, amount, note, date, timestamp: Date.now()
-            }).then(() => {
+            push(transRef, { type, amount, note, date, timestamp: Date.now() }).then(() => {
                 document.getElementById('transaction-form').reset();
                 document.getElementById('trans-date').valueAsDate = new Date();
-                
-                const Toast = Swal.mixin({
-                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true
-                });
-                Toast.fire({ icon: 'success', title: 'Transaksi berhasil disimpan' });
-
-            }).catch(error => {
-                Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: error.message });
-            });
+                Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }).fire({ icon: 'success', title: 'Tersimpan' });
+            }).catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
         });
 
-        // Load Data (Realtime)
         function loadData() {
             if(!currentUser) return;
-            const transRef = ref(db, 'transactions/' + currentUser.uid);
-            
-            onValue(transRef, (snapshot) => {
+            onValue(ref(db, 'transactions/' + currentUser.uid), (snapshot) => {
                 transactionsData = [];
-                snapshot.forEach((childSnapshot) => {
-                    transactionsData.push({ id: childSnapshot.key, ...childSnapshot.val() });
-                });
-                // Sort by date and then by timestamp descending
+                snapshot.forEach((childSnapshot) => { transactionsData.push({ id: childSnapshot.key, ...childSnapshot.val() }); });
                 transactionsData.sort((a, b) => b.timestamp - a.timestamp);
                 renderTable();
                 calculateRecap();
-            }, (error) => {
-                // === TAMBAHAN: Cegah Error Tampil Jika Firebase Rules Memblokir (karena anonim/belum verifikasi) ===
-                if (currentUser && (currentUser.isAnonymous || !currentUser.emailVerified)) {
-                    console.warn("Baca data ditolak karena aturan keamanan (Anonim / Belum Verifikasi).");
-                } else {
-                    console.error("Gagal memuat data: ", error);
-                }
             });
         }
 
-        // Muat Ulang Manual
         document.getElementById('btn-reload').addEventListener('click', () => {
             loadData();
             const icon = document.querySelector('#btn-reload i');
@@ -676,108 +700,49 @@
             setTimeout(() => icon.classList.remove('fa-spin'), 1000);
         });
 
-        // Render Tabel
         function renderTable() {
             const tbody = document.getElementById('transaction-table-body');
             tbody.innerHTML = '';
-            
             transactionsData.forEach(t => {
                 const isIncome = t.type === 'pemasukan';
                 const colorClass = isIncome ? 'text-green-600' : 'text-red-600';
-                const sign = isIncome ? '+' : '-';
-
-                // Menambahkan format waktu (Jam:Menit)
                 const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '--:--';
-
-                const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-gray-50 transition";
-                tr.innerHTML = `
-                    <td class="p-3 whitespace-nowrap">
-                        <div class="font-bold text-gray-700">${t.date}</div>
-                        <div class="text-xs text-gray-500"><i class="far fa-clock"></i> ${timeStr}</div>
-                    </td>
-                    <td class="p-3 font-medium">${t.note}</td>
-                    <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${isIncome ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.type.toUpperCase()}</span></td>
-                    <td class="p-3 text-right font-bold ${colorClass}">${sign} ${formatRupiah(t.amount)}</td>
-                    <td class="p-3 text-center">
-                        <button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 p-1 bg-red-50 rounded transition" title="Hapus">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3 whitespace-nowrap"><div class="font-bold text-gray-700">${t.date}</div><div class="text-xs text-gray-500"><i class="far fa-clock"></i> ${timeStr}</div></td>
+                        <td class="p-3 font-medium">${t.note}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${isIncome ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.type.toUpperCase()}</span></td>
+                        <td class="p-3 text-right font-bold ${colorClass}">${isIncome?'+':'-'} ${formatRupiah(t.amount)}</td>
+                        <td class="p-3 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 p-1 bg-red-50 rounded"><i class="fas fa-trash"></i></button></td>
+                    </tr>`;
             });
         }
 
-        // Fungsi Hapus Satu Transaksi
         window.deleteTransaction = (id) => {
-            Swal.fire({
-                title: 'Hapus Transaksi?',
-                text: "Data ini tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const transRef = ref(db, 'transactions/' + currentUser.uid + '/' + id);
-                    remove(transRef).then(() => {
-                        Swal.fire('Terhapus!', 'Transaksi berhasil dihapus.', 'success');
-                    }).catch(error => {
-                        Swal.fire('Gagal!', error.message, 'error');
-                    });
-                }
-            });
+            Swal.fire({ title: 'Hapus Transaksi?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Hapus' })
+                .then((result) => { if (result.isConfirmed) remove(ref(db, `transactions/${currentUser.uid}/${id}`)); });
         };
 
-        // Fungsi Hapus Semua Transaksi
         document.getElementById('btn-delete-all').addEventListener('click', () => {
-            if(transactionsData.length === 0) {
-                Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk dihapus.' });
-                return;
-            }
-            Swal.fire({
-                title: 'Hapus SEMUA Data?',
-                text: "Peringatan! Seluruh riwayat transaksi Anda akan hilang permanen.",
-                icon: 'error',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Ya, Bersihkan Semua!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const transRef = ref(db, 'transactions/' + currentUser.uid);
-                    remove(transRef).then(() => {
-                        Swal.fire('Bersih!', 'Semua data transaksi telah dihapus.', 'success');
-                    }).catch(error => {
-                        Swal.fire('Gagal!', error.message, 'error');
-                    });
-                }
-            });
+            Swal.fire({ title: 'Hapus SEMUA Data?', icon: 'error', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Bersihkan!' })
+                .then((result) => { if (result.isConfirmed) remove(ref(db, `transactions/${currentUser.uid}`)); });
         });
 
-        // Kalkulasi Rekap (Hari ini, Kemarin, Bulan ini)
         function calculateRecap() {
             const todayStr = new Date().toISOString().split('T')[0];
-            
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-            const currentMonthStr = todayStr.substring(0, 7); // YYYY-MM
+            const currentMonthStr = todayStr.substring(0, 7);
 
             let incToday = 0, incYesterday = 0, incMonth = 0, expMonth = 0;
-
             transactionsData.forEach(t => {
                 if (t.type === 'pemasukan') {
                     if (t.date === todayStr) incToday += t.amount;
                     if (t.date === yesterdayStr) incYesterday += t.amount;
                     if (t.date.startsWith(currentMonthStr)) incMonth += t.amount;
-                } else if (t.type === 'pengeluaran') {
-                    if (t.date.startsWith(currentMonthStr)) expMonth += t.amount;
+                } else if (t.type === 'pengeluaran' && t.date.startsWith(currentMonthStr)) {
+                    expMonth += t.amount;
                 }
             });
 
@@ -785,139 +750,144 @@
             document.getElementById('income-yesterday').innerText = formatRupiah(incYesterday);
             document.getElementById('income-month').innerText = formatRupiah(incMonth);
             document.getElementById('expense-month').innerText = formatRupiah(expMonth);
-            
-            const netBalance = incMonth - expMonth;
-            document.getElementById('net-balance').innerText = formatRupiah(netBalance);
+            document.getElementById('net-balance').innerText = formatRupiah(incMonth - expMonth);
         }
 
-        // Fungsi Download CSV khusus
+        // ==================== DATABASE UTANG (BARU) ====================
+        
+        document.getElementById('utang-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(!currentUser) return;
+            if (currentUser.isAnonymous || !currentUser.emailVerified) return Swal.fire({ icon: 'warning', title: 'Terbatas', text: 'Fitur tidak tersedia / Email belum diverifikasi.' });
+
+            const type = document.getElementById('utang-type').value;
+            const name = document.getElementById('utang-name').value;
+            const rawAmount = document.getElementById('utang-amount').value.replace(/\./g, '');
+            const amount = parseFloat(rawAmount);
+            const date = document.getElementById('utang-date').value;
+
+            if(isNaN(amount) || amount <= 0) return Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.' });
+
+            push(ref(db, 'debts/' + currentUser.uid), { type, name, amount, date, timestamp: Date.now() })
+                .then(() => {
+                    document.getElementById('utang-form').reset();
+                    document.getElementById('utang-date').valueAsDate = new Date();
+                    Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }).fire({ icon: 'success', title: 'Catatan Utang Tersimpan' });
+                }).catch(err => Swal.fire({ icon: 'error', title: 'Gagal', text: err.message }));
+        });
+
+        function loadUtangData() {
+            if(!currentUser) return;
+            onValue(ref(db, 'debts/' + currentUser.uid), (snapshot) => {
+                utangData = [];
+                snapshot.forEach((child) => utangData.push({ id: child.key, ...child.val() }));
+                utangData.sort((a, b) => b.timestamp - a.timestamp);
+                renderUtangTable();
+            });
+        }
+
+        function renderUtangTable() {
+            const tbody = document.getElementById('utang-table-body');
+            tbody.innerHTML = '';
+            utangData.forEach(u => {
+                const isUtang = u.type === 'utang';
+                const badge = isUtang ? '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">UTANG SAYA</span>' : '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">PIUTANG ORANG</span>';
+                const color = isUtang ? 'text-red-600' : 'text-green-600';
+                
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3 font-medium text-gray-600">${u.date}</td>
+                        <td class="p-3 font-bold">${u.name}</td>
+                        <td class="p-3">${badge}</td>
+                        <td class="p-3 text-right font-bold ${color}">${formatRupiah(u.amount)}</td>
+                        <td class="p-3 text-center"><button onclick="deleteUtang('${u.id}')" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-check-circle text-lg" title="Tandai Lunas / Hapus"></i></button></td>
+                    </tr>`;
+            });
+        }
+
+        window.deleteUtang = (id) => {
+            Swal.fire({ title: 'Tandai Lunas?', icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', confirmButtonText: 'Ya, Lunas & Hapus!' })
+                .then((result) => { if (result.isConfirmed) remove(ref(db, `debts/${currentUser.uid}/${id}`)); });
+        };
+
+
+        // ==================== CSV BACKUP ====================
+
         const downloadCSV = () => {
-            if(transactionsData.length === 0) {
-                Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk didownload.' });
-                return;
-            }
+            if(transactionsData.length === 0) return Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data.' });
             let csvContent = "Tanggal,Waktu,Keterangan,Jenis,Nominal\n";
             transactionsData.forEach(t => {
                 const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '';
                 csvContent += `${t.date},${timeStr},${t.note},${t.type},${t.amount}\n`;
             });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `DompetKu_Riwayat_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            link.href = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `DompetKu_Riwayat_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
+        document.getElementById('btn-download-history').addEventListener('click', downloadCSV);
+        document.getElementById('btn-backup').addEventListener('click', () => { downloadCSV(); toggleSidebar(); window.open('https://drive.google.com/', '_blank'); });
 
-        // Event listener tombol download di riwayat
-        document.getElementById('btn-download-history').addEventListener('click', () => {
-             downloadCSV();
-             Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'File CSV berhasil diunduh', showConfirmButton: false, timer: 3000 });
-        });
-
-        // Backup Data dengan Notifikasi GDrive
-        document.getElementById('btn-backup').addEventListener('click', () => {
-            if(transactionsData.length === 0) {
-                 Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data untuk dibackup.' });
-                 return;
-            }
-            downloadCSV();
-            toggleSidebar();
-            Swal.fire({
-                title: 'Backup Berhasil!',
-                html: 'File <b>.csv</b> telah diunduh.<br><br>Silakan unggah file tersebut ke akun <b>Google Drive</b> Anda untuk keamanan.',
-                icon: 'success',
-                showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: '<i class="fab fa-google-drive"></i> Buka Google Drive',
-                cancelButtonText: 'Tutup'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.open('https://drive.google.com/', '_blank');
-                }
-            });
-        });
-
-        // ==================== GROQ AI ASSISTANT LOGIC ====================
+        // ==================== OPENROUTER AI ASSISTANT ====================
         const aiSection = document.getElementById('ai-section');
         const aiChatBox = document.getElementById('ai-chat-box');
         
-        document.getElementById('btn-open-ai').addEventListener('click', () => {
-            aiSection.classList.remove('hidden');
-            toggleSidebar();
-        });
+        document.getElementById('btn-open-ai').addEventListener('click', () => { aiSection.classList.remove('hidden'); toggleSidebar(); });
+        document.getElementById('btn-close-ai').addEventListener('click', () => aiSection.classList.add('hidden'));
 
-        document.getElementById('btn-close-ai').addEventListener('click', () => {
-            aiSection.classList.add('hidden');
-        });
-
-        // Fungsi Append Message
         function addChatMessage(role, content) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex items-start gap-3 w-4/5 ai-message ${role === 'user' ? 'ml-auto flex-row-reverse' : ''}`;
-            
             const iconHTML = role === 'user' 
                 ? `<div class="bg-gradient-to-br from-brand to-brandDark text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-user text-xs"></i></div>`
                 : `<div class="bg-gradient-to-br from-purple-500 to-indigo-500 text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-robot text-xs"></i></div>`;
-            
-            const bubbleClasses = role === 'user'
-                ? 'bg-brand text-white border-transparent rounded-tr-sm'
-                : 'bg-white border-purple-100 text-gray-700 rounded-tl-sm shadow-sm';
-
-            wrapper.innerHTML = `
-                ${iconHTML}
-                <div class="border p-4 rounded-2xl ${bubbleClasses} text-sm whitespace-pre-wrap leading-relaxed">${content}</div>
-            `;
-            
+            const bubbleClasses = role === 'user' ? 'bg-brand text-white border-transparent rounded-tr-sm' : 'bg-white border-purple-100 text-gray-700 rounded-tl-sm shadow-sm';
+            wrapper.innerHTML = `${iconHTML}<div class="border p-4 rounded-2xl ${bubbleClasses} text-sm whitespace-pre-wrap leading-relaxed">${content}</div>`;
             aiChatBox.appendChild(wrapper);
             aiChatBox.scrollTop = aiChatBox.scrollHeight;
-            return wrapper.querySelector('.border'); // return text container if we want to update it
+            return wrapper.querySelector('.border');
         }
 
-        // Form Submit AI
         document.getElementById('ai-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const inputField = document.getElementById('ai-input');
             const message = inputField.value.trim();
             if(!message) return;
 
             addChatMessage('user', message);
             inputField.value = '';
-
-            // Loading state
             const loadingBubble = addChatMessage('ai', '<i class="fas fa-circle-notch fa-spin"></i> Sedang menganalisis...');
 
             try {
-                // Ambil konteks terbaru
                 const ctxPemasukan = document.getElementById('income-month').innerText;
                 const ctxPengeluaran = document.getElementById('expense-month').innerText;
                 const ctxSaldo = document.getElementById('net-balance').innerText;
 
-                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                // PERUBAHAN FETCH API KE OPENROUTER (Ditambahkan "Accept" dan Referer standard agar tidak diblokir browser)
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${GROQ_API_KEY}`
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'HTTP-Referer': window.location.href || 'https://dompetku.com',
+                        'X-Title': 'DompetKu AI'
                     },
                     body: JSON.stringify({
-                        model: 'llama3-8b-8192', // Model Llama3 yang cepat & ringan via Groq
+                        model: 'meta-llama/llama-3-8b-instruct:free',
                         messages: [
                             { 
                                 role: 'system', 
-                                content: `Anda adalah DompetKu AI, asisten keuangan yang cerdas, ramah, dan profesional. Gunakan bahasa Indonesia. 
-                                Data keuangan user saat ini: Total Pemasukan Bulan Ini: ${ctxPemasukan}, Total Pengeluaran Bulan Ini: ${ctxPengeluaran}, Total Saldo Bersih: ${ctxSaldo}. 
-                                Jawablah pertanyaan user berdasarkan data tersebut. Berikan saran yang memotivasi jika saldo minus, dan apresiasi jika saldo plus. Gunakan tag HTML dasar bila perlu (seperti <b> atau <i>) untuk memperindah teks.`
+                                content: `Anda adalah DompetKu AI, asisten keuangan. Gunakan bahasa Indonesia. Data: Pemasukan ${ctxPemasukan}, Pengeluaran ${ctxPengeluaran}, Saldo ${ctxSaldo}. Jawablah dengan format HTML dasar (<b>, <i>) jika perlu.`
                             },
                             { role: 'user', content: message }
                         ]
                     })
                 });
 
-                if(!response.ok) throw new Error('Cek kembali API Key Groq Anda.');
+                if(!response.ok) {
+                    throw new Error(`Terjadi kesalahan pada server (Status: ${response.status})`);
+                }
 
                 const data = await response.json();
                 if(data.choices && data.choices.length > 0) {
@@ -927,7 +897,7 @@
                 }
 
             } catch (error) {
-                loadingBubble.innerHTML = `<span class="text-red-500 font-bold"><i class="fas fa-exclamation-triangle"></i> Gagal!</span><br>Pastikan API Key GROQ Anda valid dan tersambung internet.<br><br>Error: ${error.message}`;
+                loadingBubble.innerHTML = `<span class="text-red-500 font-bold"><i class="fas fa-exclamation-triangle"></i> Gagal Memuat AI!</span><br>Pastikan API Key sudah benar dan koneksi internet stabil.<br><br><b>Pesan Error:</b> ${error.message}<br><br><span class="text-xs text-gray-500">(Saran: Jika error Failed to fetch terus terjadi, provider internet Anda mungkin memblokir OpenRouter. Coba aktifkan VPN atau gunakan koneksi Wi-Fi lain.)</span>`;
             }
         });
 
