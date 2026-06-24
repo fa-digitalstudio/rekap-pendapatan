@@ -3,203 +3,379 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekap Pendapatan & Pengeluaran</title>
+    <title>DompetKu — Rekap Pendapatan & Pengeluaran</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand: '#10b981', // Emerald 500
-                        brandDark: '#047857' // Emerald 700
+                        brand: '#1FA971',
+                        brandDark: '#0F5C3F',
+                        gold: '#E3B23C',
+                        clay: '#C1502E'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Fraunces', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace']
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Custom Styles */
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .sidebar { transition: transform 0.3s ease-in-out; }
-        .sidebar-closed { transform: translateX(-100%); }
-        .swiper-slide { display: flex; align-items: center; justify-content: center; height: 200px; border-radius: 12px; color: white; font-weight: bold; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        .slide-1 { background: linear-gradient(135deg, #10b981, #3b82f6); }
-        .slide-2 { background: linear-gradient(135deg, #f59e0b, #ef4444); }
-        .slide-3 { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
-        .hidden { display: none !important; }
-        /* Style untuk SweetAlert agar menyesuaikan tema */
-        div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm { background-color: #10b981 !important; }
-        
-        /* Animasi AI Chat */
-        .ai-message { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 0; transform: translateY(0); } }
+        :root{
+            --teal-950:#0B3A2C;
+            --teal-800:#145C44;
+            --teal-700:#1B7A57;
+            --emerald:#1FA971;
+            --emerald-dark:#0F5C3F;
+            --gold:#E3B23C;
+            --gold-dark:#C8932A;
+            --clay:#C1502E;
+            --clay-dark:#9C3D1F;
+            --cream:#FAF5E9;
+            --paper:#FFFEFB;
+            --ink:#1C2B22;
+            --ink-soft:#62716A;
+        }
+        body{ font-family:'Plus Jakarta Sans',sans-serif; background:var(--cream); color:var(--ink); }
+        .font-display{ font-family:'Fraunces',serif; }
+        .money{ font-family:'JetBrains Mono',monospace; font-variant-numeric: tabular-nums; letter-spacing:-0.02em; }
+        .hidden{ display:none !important; }
 
-        /* Tambahan gaya tombol Google */
-        .btn-google {
-            border: 1px solid #d1d5db;
-            background-color: #ffffff;
-            color: #374151;
-            transition: all 0.2s ease;
+        /* Texture: faint paper grain on cream background */
+        .paper-bg{
+            background-color:var(--cream);
+            background-image: radial-gradient(rgba(11,58,44,0.05) 1px, transparent 1px);
+            background-size: 18px 18px;
         }
-        .btn-google:hover {
-            background-color: #f9fafb;
-            border-color: #9ca3af;
+
+        /* Passbook cover (header / footer / hero) */
+        .passbook-cover{
+            background: linear-gradient(135deg, var(--teal-950) 0%, var(--teal-800) 55%, var(--teal-700) 100%);
+            position:relative;
+            border-bottom:3px solid var(--gold);
         }
-        /* Gaya Tombol Anonim */
-        .btn-anonymous {
-            border: 1px solid #6b7280;
-            background-color: #374151;
-            color: #f9fafb;
-            transition: all 0.2s ease;
+        .passbook-cover::after{
+            content:"";
+            position:absolute; inset:0;
+            background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 60%);
+            pointer-events:none;
         }
-        .btn-anonymous:hover {
-            background-color: #1f2937;
-            border-color: #4b5563;
+
+        .wordmark{ letter-spacing:0.01em; }
+        .gold-text{ color:var(--gold); }
+
+        /* Buttons */
+        .btn-primary{
+            background:linear-gradient(135deg, var(--emerald), var(--emerald-dark));
+            color:#fff; font-weight:700;
+            box-shadow:0 10px 24px -10px rgba(15,92,63,0.55);
+            transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
         }
-        /* Gaya Area Profil di Sidebar */
-        .sidebar-profile {
-            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid #a7f3d0;
+        .btn-primary:hover{ transform:translateY(-1px); filter:brightness(1.05); }
+        .btn-primary:active{ transform:translateY(0); }
+
+        .btn-gold{
+            background:linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color:var(--teal-950); font-weight:700;
+            box-shadow:0 10px 24px -10px rgba(200,147,42,0.55);
+            transition:transform .15s ease, filter .15s ease;
         }
+        .btn-gold:hover{ transform:translateY(-1px); filter:brightness(1.04); }
+
+        .btn-clay{
+            background:linear-gradient(135deg, var(--clay), var(--clay-dark));
+            color:#fff; font-weight:700;
+            transition:transform .15s ease, filter .15s ease;
+        }
+        .btn-clay:hover{ transform:translateY(-1px); filter:brightness(1.05); }
+
+        .btn-ghost-google{
+            border:1px solid #DDD7C8; background:var(--paper); color:var(--ink);
+            transition:all .2s ease;
+        }
+        .btn-ghost-google:hover{ background:#F4EFE2; border-color:#C9C1AA; }
+
+        .btn-ghost-anon{
+            border:1px solid var(--teal-800); background:var(--teal-950); color:#EFEAD9;
+            transition:all .2s ease;
+        }
+        .btn-ghost-anon:hover{ background:var(--teal-800); }
+
+        .icon-chip{ transition: all .15s ease; }
+        .icon-chip:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+
+        /* Auth card */
+        .auth-shell{
+            background:var(--paper);
+            border-radius:1.5rem;
+            box-shadow:0 30px 60px -25px rgba(11,58,44,0.35);
+            overflow:hidden;
+            border:1px solid rgba(11,58,44,0.06);
+        }
+        .auth-cover{
+            background:linear-gradient(150deg, var(--teal-950), var(--teal-700));
+            position:relative;
+        }
+        .auth-cover::before{
+            content:"";
+            position:absolute; inset:0;
+            background-image: radial-gradient(rgba(227,178,60,0.18) 1px, transparent 1px);
+            background-size:14px 14px;
+            opacity:.5;
+        }
+
+        .field-input{
+            background:var(--paper);
+            border:1px solid #E2DCC9;
+            color:var(--ink);
+            transition:border-color .15s ease, box-shadow .15s ease;
+        }
+        .field-input:focus{
+            outline:none; border-color:var(--emerald);
+            box-shadow:0 0 0 3px rgba(31,169,113,0.18);
+        }
+
+        /* Sidebar */
+        .sidebar{ transition: transform 0.3s ease-in-out; background:var(--paper); }
+        .sidebar-closed{ transform: translateX(-100%); }
+        .sidebar-profile{
+            background:linear-gradient(135deg, #EAF6EE, #DCF0E2);
+            border-radius:1rem; padding:1rem; margin-bottom:1rem;
+            border:1px solid #BFE6CC;
+        }
+        .nav-item{ transition: background .15s ease, transform .15s ease; }
+        .nav-item:hover{ background:#F4EFE2; transform:translateX(2px); }
+        .nav-icon{
+            width:2.1rem; height:2.1rem; border-radius:0.65rem;
+            display:flex; align-items:center; justify-content:center; flex-shrink:0;
+        }
+
+        /* Swiper hero */
+        .swiper-slide{ display:flex; align-items:center; justify-content:center; height:200px; border-radius:1.25rem; color:white; position:relative; overflow:hidden; }
+        .swiper-slide span{ position:relative; z-index:2; font-family:'Fraunces',serif; font-weight:600; text-align:center; padding:0 1.5rem; text-shadow:0 2px 10px rgba(0,0,0,0.35); }
+        .slide-1{ background: linear-gradient(135deg, var(--teal-950), var(--emerald)); }
+        .slide-2{ background: linear-gradient(135deg, var(--clay-dark), var(--gold)); }
+        .slide-3{ background: linear-gradient(135deg, var(--teal-800), #2D8F6A); }
+        .swiper-slide::after{ content:""; position:absolute; inset:0; background:radial-gradient(circle at 80% 20%, rgba(255,255,255,0.18), transparent 60%); }
+        .swiper-pagination-bullet{ background:#fff !important; opacity:.5; }
+        .swiper-pagination-bullet-active{ opacity:1 !important; background:var(--gold) !important; }
+
+        /* Ledger stat cards */
+        .ledger-card{
+            background:var(--paper); border-radius:1.1rem;
+            border:1px solid rgba(11,58,44,0.08);
+            box-shadow:0 1px 2px rgba(0,0,0,0.02), 0 14px 28px -18px rgba(11,58,44,0.22);
+            position:relative; overflow:hidden;
+        }
+        .ledger-card::before{
+            content:""; position:absolute; top:0; left:0; right:0; height:4px;
+        }
+        .ledger-card.bar-blue::before{ background:linear-gradient(90deg,#2563EB,#60A5FA); }
+        .ledger-card.bar-gold::before{ background:linear-gradient(90deg,var(--gold-dark),var(--gold)); }
+        .ledger-card.bar-emerald::before{ background:linear-gradient(90deg,var(--emerald-dark),var(--emerald)); }
+        .ledger-card.bar-clay::before{ background:linear-gradient(90deg,var(--clay-dark),var(--clay)); }
+
+        /* Balance hero — the "open passbook page" signature element */
+        .balance-page{
+            background: linear-gradient(165deg, var(--teal-950) 0%, var(--teal-800) 55%, var(--emerald-dark) 100%);
+            border-radius:1.5rem; position:relative; overflow:hidden;
+            box-shadow:0 25px 50px -22px rgba(11,58,44,0.6);
+        }
+        .balance-page::before{
+            content:""; position:absolute; top:0; bottom:0; left:50%;
+            width:0; border-left:2px dashed rgba(255,255,255,0.14);
+            display:none;
+        }
+        @media (min-width:640px){ .balance-page::before{ display:block; } }
+        .balance-stamp{
+            width:3.5rem; height:3.5rem; border-radius:50%;
+            border:2px solid var(--gold); color:var(--gold);
+            display:flex; align-items:center; justify-content:center;
+            transform:rotate(-8deg);
+            background:rgba(255,255,255,0.04);
+        }
+
+        /* Forms / table cards */
+        .panel{
+            background:var(--paper); border-radius:1.25rem;
+            border:1px solid rgba(11,58,44,0.07);
+            box-shadow:0 1px 2px rgba(0,0,0,0.02), 0 16px 32px -22px rgba(11,58,44,0.18);
+        }
+        .panel-title{ font-family:'Fraunces',serif; }
+
+        .ledger-row{ border-bottom:1px dashed #E5DFCC; }
+        .ledger-row:hover{ background:#FBF8EF; }
+        .badge-in{ background:#E4F5EA; color:var(--emerald-dark); }
+        .badge-out{ background:#FBE9E2; color:var(--clay-dark); }
+
+        /* AI assistant modal — restyled to match the teal/gold identity */
+        .ai-message{ animation: fadeIn 0.35s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .ai-cover{ background:linear-gradient(120deg, var(--teal-950), var(--emerald-dark)); }
+        .ai-bubble-bot{ background:var(--paper); border:1px solid #E5DFCC; }
+        .ai-bubble-user{ background:linear-gradient(135deg, var(--emerald), var(--emerald-dark)); color:#fff; }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="text-[var(--ink)]">
 
-    <div id="login-section" class="min-h-screen flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-            <h2 class="text-3xl font-bold text-center text-brand mb-6">Masuk</h2>
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="login-email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
-                </div>
-                <div class="relative">
-                    <label class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="login-password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
-                    <button type="button" onclick="togglePassword('login-password')" class="absolute right-3 top-9 text-gray-500 hover:text-brand"><i class="fas fa-eye"></i></button>
-                </div>
-                <div class="flex justify-between items-center text-sm">
-                    <button type="button" id="btn-forgot-password" class="text-brand hover:underline">Lupa Password?</button>
-                </div>
-                <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition">Masuk</button>
-            </form>
-
-            <div class="flex items-center my-6">
-                <div class="flex-grow h-px bg-gray-300"></div>
-                <span class="px-4 text-sm text-gray-500">atau masuk dengan</span>
-                <div class="flex-grow h-px bg-gray-300"></div>
+    <div id="login-section" class="min-h-screen flex items-center justify-center p-4 paper-bg">
+        <div class="auth-shell w-full max-w-md">
+            <div class="auth-cover p-6 text-center">
+                <div class="balance-stamp mx-auto mb-3"><i class="fas fa-wallet text-lg"></i></div>
+                <h1 class="font-display text-2xl font-semibold text-white wordmark">DompetKu</h1>
+                <p class="text-[11px] uppercase tracking-[0.18em] text-[#E3B23C] mt-1">Catatan Keuangan Harian</p>
             </div>
+            <div class="p-8">
+                <h2 class="font-display text-2xl font-semibold text-center mb-6">Masuk</h2>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="login-email" class="field-input w-full p-3 rounded-xl" required>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-sm font-medium mb-1">Password</label>
+                        <input type="password" id="login-password" class="field-input w-full p-3 rounded-xl" required>
+                        <button type="button" onclick="togglePassword('login-password')" class="absolute right-3 top-9 text-[var(--ink-soft)] hover:text-[var(--emerald)]"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <button type="button" id="btn-forgot-password" class="text-[var(--emerald-dark)] font-medium hover:underline">Lupa Password?</button>
+                    </div>
+                    <button type="submit" class="btn-primary w-full p-3 rounded-xl">Masuk</button>
+                </form>
 
-            <button type="button" id="btn-login-google" class="w-full btn-google p-3 rounded-lg font-bold flex items-center justify-center gap-2">
-                <i class="fab fa-google text-red-500"></i> Masuk dengan Google
-            </button>
+                <div class="flex items-center my-6">
+                    <div class="flex-grow h-px bg-[#E5DFCC]"></div>
+                    <span class="px-4 text-xs uppercase tracking-wide text-[var(--ink-soft)]">atau masuk dengan</span>
+                    <div class="flex-grow h-px bg-[#E5DFCC]"></div>
+                </div>
 
-            <button type="button" id="btn-login-anonymous" class="w-full btn-anonymous p-3 rounded-lg font-bold flex items-center justify-center gap-2 mt-3">
-                <i class="fas fa-user-secret text-gray-200"></i> Masuk Tanpa Akun
-            </button>
-            <p class="text-[11px] text-gray-500 text-center mt-1">⚠️ Data hanya tersimpan di perangkat ini — hapus riwayat = hilang permanen</p>
+                <button type="button" id="btn-login-google" class="w-full btn-ghost-google p-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+                    <i class="fab fa-google text-red-500"></i> Masuk dengan Google
+                </button>
 
-            <p class="text-center mt-4 text-sm">Belum punya akun? <button onclick="showSection('register-section')" class="text-brand font-bold hover:underline">Daftar di sini</button></p>
+                <button type="button" id="btn-login-anonymous" class="w-full btn-ghost-anon p-3 rounded-xl font-semibold flex items-center justify-center gap-2 mt-3">
+                    <i class="fas fa-user-secret"></i> Masuk Tanpa Akun
+                </button>
+                <p class="text-[11px] text-[var(--ink-soft)] text-center mt-2">⚠️ Data hanya tersimpan di perangkat ini — hapus riwayat = hilang permanen</p>
+
+                <p class="text-center mt-5 text-sm">Belum punya akun? <button onclick="showSection('register-section')" class="text-[var(--emerald-dark)] font-bold hover:underline">Daftar di sini</button></p>
+            </div>
         </div>
     </div>
 
-    <div id="register-section" class="min-h-screen flex items-center justify-center p-4 hidden">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-            <h2 class="text-3xl font-bold text-center text-brand mb-6">Daftar Akun</h2>
-            <form id="register-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="reg-email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
-                </div>
-                <div class="relative">
-                    <label class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="reg-password" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-brand outline-none" required>
-                    <button type="button" onclick="togglePassword('reg-password')" class="absolute right-3 top-9 text-gray-500 hover:text-brand"><i class="fas fa-eye"></i></button>
-                </div>
-                <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition">Daftar</button>
-            </form>
-
-            <div class="flex items-center my-6">
-                <div class="flex-grow h-px bg-gray-300"></div>
-                <span class="px-4 text-sm text-gray-500">atau daftar dengan</span>
-                <div class="flex-grow h-px bg-gray-300"></div>
+    <div id="register-section" class="min-h-screen flex items-center justify-center p-4 paper-bg hidden">
+        <div class="auth-shell w-full max-w-md">
+            <div class="auth-cover p-6 text-center">
+                <div class="balance-stamp mx-auto mb-3"><i class="fas fa-wallet text-lg"></i></div>
+                <h1 class="font-display text-2xl font-semibold text-white wordmark">DompetKu</h1>
+                <p class="text-[11px] uppercase tracking-[0.18em] text-[#E3B23C] mt-1">Catatan Keuangan Harian</p>
             </div>
+            <div class="p-8">
+                <h2 class="font-display text-2xl font-semibold text-center mb-6">Daftar Akun</h2>
+                <form id="register-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" id="reg-email" class="field-input w-full p-3 rounded-xl" required>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-sm font-medium mb-1">Password</label>
+                        <input type="password" id="reg-password" class="field-input w-full p-3 rounded-xl" required>
+                        <button type="button" onclick="togglePassword('reg-password')" class="absolute right-3 top-9 text-[var(--ink-soft)] hover:text-[var(--emerald)]"><i class="fas fa-eye"></i></button>
+                    </div>
+                    <button type="submit" class="btn-primary w-full p-3 rounded-xl">Daftar</button>
+                </form>
 
-            <button type="button" id="btn-register-google" class="w-full btn-google p-3 rounded-lg font-bold flex items-center justify-center gap-2">
-                <i class="fab fa-google text-red-500"></i> Daftar dengan Google
-            </button>
+                <div class="flex items-center my-6">
+                    <div class="flex-grow h-px bg-[#E5DFCC]"></div>
+                    <span class="px-4 text-xs uppercase tracking-wide text-[var(--ink-soft)]">atau daftar dengan</span>
+                    <div class="flex-grow h-px bg-[#E5DFCC]"></div>
+                </div>
 
-            <button type="button" id="btn-register-anonymous" class="w-full btn-anonymous p-3 rounded-lg font-bold flex items-center justify-center gap-2 mt-3">
-                <i class="fas fa-user-secret text-gray-200"></i> Coba Tanpa Akun
-            </button>
-            <p class="text-[11px] text-gray-500 text-center mt-1">⚠️ Data hanya tersimpan di perangkat ini — hapus riwayat = hilang permanen</p>
+                <button type="button" id="btn-register-google" class="w-full btn-ghost-google p-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+                    <i class="fab fa-google text-red-500"></i> Daftar dengan Google
+                </button>
 
-            <p class="text-center mt-4 text-sm">Sudah punya akun? <button onclick="showSection('login-section')" class="text-brand font-bold hover:underline">Masuk di sini</button></p>
+                <button type="button" id="btn-register-anonymous" class="w-full btn-ghost-anon p-3 rounded-xl font-semibold flex items-center justify-center gap-2 mt-3">
+                    <i class="fas fa-user-secret"></i> Coba Tanpa Akun
+                </button>
+                <p class="text-[11px] text-[var(--ink-soft)] text-center mt-2">⚠️ Data hanya tersimpan di perangkat ini — hapus riwayat = hilang permanen</p>
+
+                <p class="text-center mt-5 text-sm">Sudah punya akun? <button onclick="showSection('login-section')" class="text-[var(--emerald-dark)] font-bold hover:underline">Masuk di sini</button></p>
+            </div>
         </div>
     </div>
 
-    <div id="dashboard-section" class="hidden min-h-screen flex flex-col">
-        
-        <header class="bg-brand text-white shadow-md p-4 flex justify-between items-center sticky top-0 z-40">
-            <div class="flex items-center gap-4">
-                <button id="btn-menu" class="text-2xl focus:outline-none"><i class="fas fa-bars"></i></button>
-                <h1 class="text-xl font-bold">DompetKu</h1>
+    <div id="dashboard-section" class="hidden min-h-screen flex flex-col paper-bg">
+
+        <header class="passbook-cover text-white shadow-md p-4 flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-3 relative z-10">
+                <button id="btn-menu" class="text-xl w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition flex items-center justify-center focus:outline-none"><i class="fas fa-bars"></i></button>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full border-2 border-[var(--gold)] flex items-center justify-center"><i class="fas fa-wallet text-[var(--gold)] text-sm"></i></div>
+                    <h1 class="font-display text-xl font-semibold wordmark">DompetKu</h1>
+                </div>
             </div>
-            <div class="text-sm font-medium flex items-center justify-center" id="user-display-header"></div>
+            <div class="text-sm font-medium flex items-center justify-center relative z-10" id="user-display-header"></div>
         </header>
 
-        <div id="sidebar" class="sidebar sidebar-closed fixed inset-y-0 left-0 w-64 bg-white shadow-2xl z-50 p-6 flex flex-col">
-            <div class="flex justify-between items-center mb-4 pb-4 border-b">
-                <h2 class="text-xl font-bold text-brand">Menu Utama</h2>
-                <button id="btn-close-menu" class="text-gray-500 hover:text-red-500 text-xl"><i class="fas fa-times"></i></button>
+        <div id="sidebar" class="sidebar sidebar-closed fixed inset-y-0 left-0 w-72 shadow-2xl z-50 p-6 flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-[#EDE7D6]">
+                <h2 class="font-display text-xl font-semibold text-[var(--emerald-dark)]">Menu Utama</h2>
+                <button id="btn-close-menu" class="text-[var(--ink-soft)] hover:text-[var(--clay)] text-xl w-9 h-9 rounded-full hover:bg-[#FBF1EC] flex items-center justify-center transition"><i class="fas fa-times"></i></button>
             </div>
 
             <div id="sidebar-profile-area" class="sidebar-profile hidden">
                 <div class="flex items-center gap-3">
-                    <img id="side-profile-img" src="" alt="Profil" class="w-10 h-10 rounded-full border-2 border-brand object-cover shadow">
+                    <img id="side-profile-img" src="" alt="Profil" class="w-10 h-10 rounded-full border-2 border-[var(--emerald)] object-cover shadow">
                     <div class="overflow-hidden">
-                        <p class="text-xs text-gray-500">Aktif Sebagai</p>
-                        <p id="side-profile-email" class="text-sm font-bold text-gray-800 truncate"></p>
+                        <p class="text-[10px] uppercase tracking-wide text-[var(--ink-soft)]">Aktif Sebagai</p>
+                        <p id="side-profile-email" class="text-sm font-bold text-[var(--ink)] truncate"></p>
                     </div>
                 </div>
             </div>
 
-            <nav class="flex-1 space-y-3">
-                <button id="btn-dashboard-nav" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-gray-700 font-medium transition">
-                    <i class="fas fa-home text-brand"></i> Dashboard
+            <nav class="flex-1 space-y-2 overflow-y-auto">
+                <button id="btn-dashboard-nav" class="nav-item w-full flex items-center gap-3 text-left p-3 rounded-xl text-[var(--ink)] font-semibold">
+                    <span class="nav-icon bg-[#E4F5EA]"><i class="fas fa-home text-[var(--emerald-dark)]"></i></span> Dashboard
                 </button>
-                <button id="btn-utang-nav" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-gray-700 font-medium transition">
-                    <i class="fas fa-book text-orange-500"></i> Catatan Utang
+                <button id="btn-utang-nav" class="nav-item w-full flex items-center gap-3 text-left p-3 rounded-xl text-[var(--ink)] font-semibold">
+                    <span class="nav-icon bg-[#FBE9E2]"><i class="fas fa-book text-[var(--clay-dark)]"></i></span> Catatan Utang
                 </button>
-                <button id="btn-backup" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg text-blue-600 font-medium transition">
-                    <i class="fas fa-cloud-download-alt"></i> Backup Google Drive
+                <button id="btn-backup" class="nav-item w-full flex items-center gap-3 text-left p-3 rounded-xl text-[var(--ink)] font-semibold">
+                    <span class="nav-icon bg-[#E6EEFB]"><i class="fas fa-cloud-download-alt text-blue-600"></i></span> Backup Google Drive
                 </button>
-                <button id="btn-open-ai" class="w-full flex items-center gap-3 text-left p-3 hover:bg-purple-50 rounded-lg text-purple-600 font-bold transition border border-transparent hover:border-purple-200">
-                    <i class="fas fa-robot text-xl"></i> Asisten Pintar (AI)
+                <button id="btn-open-ai" class="nav-item w-full flex items-center gap-3 text-left p-3 rounded-xl font-bold border border-transparent hover:border-[#F1DFA3]">
+                    <span class="nav-icon bg-[#FBF1CF]"><i class="fas fa-robot text-[var(--gold-dark)]"></i></span> <span class="text-[var(--gold-dark)]">Asisten Pintar (AI)</span>
                 </button>
-                <div class="p-4 bg-green-50 rounded-lg border border-green-200 mt-2">
-                    <p class="text-xs text-gray-500 mb-1">Dukung Aplikasi Ini</p>
-                    <p class="font-bold text-brand text-sm"><i class="fas fa-wallet"></i> Donasi OVO</p>
-                    <p class="text-lg font-mono font-bold mt-1">085825444030</p>
-                    <p class="text-xs uppercase font-bold text-gray-600">A.N ANDI FARID ARIS</p> 
+
+                <div class="p-4 bg-[#EAF6EE] rounded-xl border border-[#BFE6CC] mt-2">
+                    <p class="text-xs text-[var(--ink-soft)] mb-1">Dukung Aplikasi Ini</p>
+                    <p class="font-bold text-[var(--emerald-dark)] text-sm"><i class="fas fa-wallet"></i> Donasi OVO</p>
+                    <p class="text-lg money font-bold mt-1">085825444030</p>
+                    <p class="text-xs uppercase font-bold text-[var(--ink-soft)]">A.N ANDI FARID ARIS</p>
                 </div>
-                <button id="btn-about" class="w-full flex items-center gap-3 text-left p-3 hover:bg-gray-100 rounded-lg font-medium transition">
-                    <i class="fas fa-info-circle text-gray-500"></i> Tentang Aplikasi
+
+                <button id="btn-about" class="nav-item w-full flex items-center gap-3 text-left p-3 rounded-xl font-semibold text-[var(--ink)]">
+                    <span class="nav-icon bg-[#F1EEE3]"><i class="fas fa-info-circle text-[var(--ink-soft)]"></i></span> Tentang Aplikasi
                 </button>
             </nav>
-            
-            <div class="mt-auto space-y-2 pt-4 border-t">
-                <button id="btn-delete-account" class="w-full flex items-center gap-3 p-3 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg font-bold transition">
+
+            <div class="mt-auto space-y-2 pt-4 border-t border-[#EDE7D6]">
+                <button id="btn-delete-account" class="w-full flex items-center gap-3 p-3 bg-[#FBE9E2] text-[var(--clay-dark)] hover:bg-[#F6DCD0] border border-[#F1CBB8] rounded-xl font-bold transition">
                     <i class="fas fa-user-times"></i> Hapus Akun
                 </button>
-                <button id="btn-logout" class="w-full flex items-center gap-3 p-3 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-bold transition">
+                <button id="btn-logout" class="w-full flex items-center gap-3 p-3 bg-[#F1EEE3] text-[var(--ink)] hover:bg-[#E9E4D5] rounded-xl font-bold transition">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
@@ -207,89 +383,89 @@
         <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
         <main id="main-dashboard" class="flex-1 p-4 max-w-4xl w-full mx-auto space-y-6 pb-24">
-            
+
             <div class="swiper mySwiper rounded-2xl shadow-lg overflow-hidden">
                 <div class="swiper-wrapper">
-                    <div class="swiper-slide slide-1">Kelola Keuangan Lebih Mudah</div>
-                    <div class="swiper-slide slide-2">Catat Setiap Transaksi Anda</div>
-                    <div class="swiper-slide slide-3">Capai Target Finansialmu</div>
+                    <div class="swiper-slide slide-1"><span>Kelola Keuangan Lebih Mudah</span></div>
+                    <div class="swiper-slide slide-2"><span>Catat Setiap Transaksi Anda</span></div>
+                    <div class="swiper-slide slide-3"><span>Capai Target Finansialmu</span></div>
                 </div>
                 <div class="swiper-pagination"></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-blue-500">
-                    <p class="text-sm text-gray-500 font-medium">Pendapatan Hari Ini</p>
-                    <h3 class="text-2xl font-bold text-blue-600" id="income-today">Rp 0</h3>
+                <div class="ledger-card bar-blue p-5">
+                    <p class="text-sm text-[var(--ink-soft)] font-medium">Pendapatan Hari Ini</p>
+                    <h3 class="text-2xl font-bold money text-blue-600" id="income-today">Rp 0</h3>
                 </div>
-                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-orange-500">
-                    <p class="text-sm text-gray-500 font-medium">Pendapatan Kemarin</p>
-                    <h3 class="text-2xl font-bold text-orange-600" id="income-yesterday">Rp 0</h3>
+                <div class="ledger-card bar-gold p-5">
+                    <p class="text-sm text-[var(--ink-soft)] font-medium">Pendapatan Kemarin</p>
+                    <h3 class="text-2xl font-bold money text-[var(--gold-dark)]" id="income-yesterday">Rp 0</h3>
                 </div>
-                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-brand">
-                    <p class="text-sm text-gray-500 font-medium">Pendapatan Bulan Ini</p>
-                    <h3 class="text-2xl font-bold text-brand" id="income-month">Rp 0</h3>
+                <div class="ledger-card bar-emerald p-5">
+                    <p class="text-sm text-[var(--ink-soft)] font-medium">Pendapatan Bulan Ini</p>
+                    <h3 class="text-2xl font-bold money text-[var(--emerald-dark)]" id="income-month">Rp 0</h3>
                 </div>
-                <div class="bg-white p-5 rounded-xl shadow border-l-4 border-red-500">
-                    <p class="text-sm text-gray-500 font-medium">Pengeluaran Bulan Ini</p>
-                    <h3 class="text-2xl font-bold text-red-600" id="expense-month">Rp 0</h3>
+                <div class="ledger-card bar-clay p-5">
+                    <p class="text-sm text-[var(--ink-soft)] font-medium">Pengeluaran Bulan Ini</p>
+                    <h3 class="text-2xl font-bold money text-[var(--clay-dark)]" id="expense-month">Rp 0</h3>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-brand to-brandDark p-6 rounded-2xl shadow-lg text-white flex justify-between items-center">
-                <div>
-                    <p class="text-sm opacity-80 mb-1">Total Saldo Bersih (Bulan Ini)</p>
-                    <h2 class="text-3xl font-bold" id="net-balance">Rp 0</h2>
+            <div class="balance-page p-6 sm:p-8 text-white flex justify-between items-center">
+                <div class="relative z-10">
+                    <p class="text-xs uppercase tracking-[0.18em] text-[#CFE9DA] mb-2">Total Saldo Bersih (Bulan Ini)</p>
+                    <h2 class="font-display text-3xl sm:text-4xl font-semibold money gold-text" id="net-balance">Rp 0</h2>
                 </div>
-                <i class="fas fa-wallet text-4xl opacity-50"></i>
+                <div class="balance-stamp relative z-10"><i class="fas fa-wallet text-xl"></i></div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-md">
-                <h3 class="text-lg font-bold mb-4 border-b pb-2">Tambah Transaksi</h3>
+            <div class="panel p-6">
+                <h3 class="panel-title text-lg font-semibold mb-4 border-b border-[#EDE7D6] pb-3">Tambah Transaksi</h3>
                 <form id="transaction-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm mb-1">Jenis</label>
-                        <select id="trans-type" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand">
+                        <label class="block text-sm mb-1 font-medium">Jenis</label>
+                        <select id="trans-type" class="field-input w-full p-2.5 rounded-lg">
                             <option value="pemasukan">Pemasukan</option>
                             <option value="pengeluaran">Pengeluaran</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Nominal (Rp)</label>
-                        <input type="text" inputmode="numeric" id="trans-amount" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required placeholder="100.000">
+                        <label class="block text-sm mb-1 font-medium">Nominal (Rp)</label>
+                        <input type="text" inputmode="numeric" id="trans-amount" class="field-input w-full p-2.5 rounded-lg money" required placeholder="100.000">
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Keterangan</label>
-                        <input type="text" id="trans-note" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" placeholder="Cth: Hasil Grab, Beli Bensin..." required>
+                        <label class="block text-sm mb-1 font-medium">Keterangan</label>
+                        <input type="text" id="trans-note" class="field-input w-full p-2.5 rounded-lg" placeholder="Cth: Hasil Grab, Beli Bensin..." required>
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Tanggal</label>
-                        <input type="date" id="trans-date" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                        <label class="block text-sm mb-1 font-medium">Tanggal</label>
+                        <input type="date" id="trans-date" class="field-input w-full p-2.5 rounded-lg" required>
                     </div>
                     <div class="md:col-span-2">
-                        <button type="submit" class="w-full bg-brand text-white p-3 rounded-lg font-bold hover:bg-brandDark transition"><i class="fas fa-plus"></i> Simpan Transaksi</button>
+                        <button type="submit" class="btn-primary w-full p-3 rounded-xl"><i class="fas fa-plus"></i> Simpan Transaksi</button>
                     </div>
                 </form>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-md overflow-hidden">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 class="text-lg font-bold">Riwayat Transaksi</h3>
+            <div class="panel p-6 overflow-hidden">
+                <div class="flex justify-between items-center mb-4 border-b border-[#EDE7D6] pb-3">
+                    <h3 class="panel-title text-lg font-semibold">Riwayat Transaksi</h3>
                     <div class="flex gap-2">
-                        <button id="btn-download-history" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition" title="Download Riwayat (CSV)"><i class="fas fa-file-export"></i></button>
-                        <button id="btn-delete-all" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition" title="Hapus Semua Data"><i class="fas fa-trash-alt"></i></button>
-                        <button id="btn-reload" class="text-brand hover:text-brandDark bg-green-50 p-2 rounded-full transition" title="Muat Ulang"><i class="fas fa-sync-alt"></i></button>
+                        <button id="btn-download-history" class="icon-chip text-blue-600 hover:text-blue-700 bg-blue-50 p-2 rounded-full" title="Download Riwayat (CSV)"><i class="fas fa-file-export"></i></button>
+                        <button id="btn-delete-all" class="icon-chip text-[var(--clay-dark)] hover:text-[var(--clay)] bg-[#FBE9E2] p-2 rounded-full" title="Hapus Semua Data"><i class="fas fa-trash-alt"></i></button>
+                        <button id="btn-reload" class="icon-chip text-[var(--emerald-dark)] hover:text-[var(--emerald)] bg-[#E4F5EA] p-2 rounded-full" title="Muat Ulang"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-600 text-sm">
-                                <th class="p-3 border-b">Tanggal & Waktu</th>
-                                <th class="p-3 border-b">Keterangan</th>
-                                <th class="p-3 border-b">Jenis</th>
-                                <th class="p-3 border-b text-right">Nominal</th>
-                                <th class="p-3 border-b text-center">Aksi</th>
+                            <tr class="text-[var(--ink-soft)] text-xs uppercase tracking-wide">
+                                <th class="p-3 border-b border-[#EDE7D6]">Tanggal & Waktu</th>
+                                <th class="p-3 border-b border-[#EDE7D6]">Keterangan</th>
+                                <th class="p-3 border-b border-[#EDE7D6]">Jenis</th>
+                                <th class="p-3 border-b border-[#EDE7D6] text-right">Nominal</th>
+                                <th class="p-3 border-b border-[#EDE7D6] text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="transaction-table-body" class="text-sm">
@@ -300,50 +476,53 @@
         </main>
 
         <main id="main-utang" class="hidden flex-1 p-4 max-w-4xl w-full mx-auto space-y-6 pb-24">
-            <div class="flex items-center gap-4 border-b pb-4">
-                <button id="btn-back-dashboard" class="text-gray-600 hover:text-brand bg-white px-4 py-2 rounded-lg shadow-sm font-bold border"><i class="fas fa-arrow-left mr-2"></i> Kembali</button>
-                <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-book text-orange-500 mr-2"></i> Catatan Utang</h2>
+            <div class="flex items-center gap-4 border-b border-[#EDE7D6] pb-4">
+                <button id="btn-back-dashboard" class="text-[var(--ink)] hover:text-[var(--emerald-dark)] bg-[var(--paper)] px-4 py-2 rounded-xl shadow-sm font-bold border border-[#EDE7D6]"><i class="fas fa-arrow-left mr-2"></i> Kembali</button>
+                <h2 class="font-display text-2xl font-semibold text-[var(--ink)]"><i class="fas fa-book text-[var(--clay-dark)] mr-2"></i> Catatan Utang</h2>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-md">
-                <h3 class="text-lg font-bold mb-4 border-b pb-2">Tambah Catatan</h3>
+            <div class="panel p-6">
+                <h3 class="panel-title text-lg font-semibold mb-4 border-b border-[#EDE7D6] pb-3">Tambah Catatan</h3>
                 <form id="utang-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm mb-1">Jenis Catatan</label>
-                        <select id="utang-type" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand">
+                        <label class="block text-sm mb-1 font-medium">Jenis Catatan</label>
+                        <select id="utang-type" class="field-input w-full p-2.5 rounded-lg">
                             <option value="utang">Saya Berutang (Utang)</option>
                             <option value="piutang">Orang Berutang Ke Saya (Piutang)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Nama Orang</label>
-                        <input type="text" id="utang-name" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" placeholder="Nama..." required>
+                        <label class="block text-sm mb-1 font-medium">Nama Orang</label>
+                        <input type="text" id="utang-name" class="field-input w-full p-2.5 rounded-lg" placeholder="Nama..." required>
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Nominal (Rp)</label>
-                        <input type="text" inputmode="numeric" id="utang-amount" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required placeholder="100.000">
+                        <label class="block text-sm mb-1 font-medium">Nominal (Rp)</label>
+                        <input type="text" inputmode="numeric" id="utang-amount" class="field-input w-full p-2.5 rounded-lg money" required placeholder="100.000">
                     </div>
                     <div>
-                        <label class="block text-sm mb-1">Tenggat Waktu / Tanggal</label>
-                        <input type="date" id="utang-date" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-brand" required>
+                        <label class="block text-sm mb-1 font-medium">Tenggat Waktu / Tanggal</label>
+                        <input type="date" id="utang-date" class="field-input w-full p-2.5 rounded-lg" required>
                     </div>
                     <div class="md:col-span-2">
-                        <button type="submit" class="w-full bg-orange-500 text-white p-3 rounded-lg font-bold hover:bg-orange-600 transition"><i class="fas fa-save"></i> Simpan Catatan</button>
+                        <button type="submit" class="btn-clay w-full p-3 rounded-xl"><i class="fas fa-save"></i> Simpan Catatan</button>
                     </div>
                 </form>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-md overflow-hidden">
-                <h3 class="text-lg font-bold mb-4 border-b pb-2">Daftar Utang / Piutang</h3>
+            <div class="panel p-6 overflow-hidden">
+                <div class="flex justify-between items-center mb-4 border-b border-[#EDE7D6] pb-3">
+                    <h3 class="panel-title text-lg font-semibold">Daftar Utang / Piutang</h3>
+                    <button id="btn-delete-all-utang" class="icon-chip text-[var(--clay-dark)] hover:text-[var(--clay)] bg-[#FBE9E2] p-2 rounded-full" title="Hapus Semua Catatan Utang"><i class="fas fa-trash-alt"></i></button>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-600 text-sm">
-                                <th class="p-3 border-b">Tgl / Tenggat</th>
-                                <th class="p-3 border-b">Nama</th>
-                                <th class="p-3 border-b">Jenis</th>
-                                <th class="p-3 border-b text-right">Nominal</th>
-                                <th class="p-3 border-b text-center">Aksi</th>
+                            <tr class="text-[var(--ink-soft)] text-xs uppercase tracking-wide">
+                                <th class="p-3 border-b border-[#EDE7D6]">Tgl / Tenggat</th>
+                                <th class="p-3 border-b border-[#EDE7D6]">Nama</th>
+                                <th class="p-3 border-b border-[#EDE7D6]">Jenis</th>
+                                <th class="p-3 border-b border-[#EDE7D6] text-right">Nominal</th>
+                                <th class="p-3 border-b border-[#EDE7D6] text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="utang-table-body" class="text-sm">
@@ -353,54 +532,54 @@
             </div>
         </main>
 
-        <footer class="bg-gray-800 text-gray-300 text-center p-6 mt-auto">
-            <p class="font-bold text-white mb-2">Aplikasi Rekap Pendapatan</p>
-            <p class="text-sm mb-4">Dikelola dengan <i class="fas fa-heart text-red-500"></i> & Firebase</p>
-            <div class="flex justify-center gap-4 text-xl">
-                <a href="#" class="hover:text-brand transition"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="hover:text-brand transition"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="hover:text-brand transition"><i class="fab fa-whatsapp"></i></a>
+        <footer class="passbook-cover text-gray-200 text-center p-6 mt-auto">
+            <p class="font-display font-semibold text-white mb-2 relative z-10">Aplikasi Rekap Pendapatan</p>
+            <p class="text-sm mb-4 relative z-10">Dikelola dengan <i class="fas fa-heart text-[var(--clay)]"></i> & Firebase</p>
+            <div class="flex justify-center gap-4 text-xl relative z-10">
+                <a href="#" class="hover:text-[var(--gold)] transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="hover:text-[var(--gold)] transition"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="hover:text-[var(--gold)] transition"><i class="fab fa-whatsapp"></i></a>
             </div>
-            <p class="text-xs mt-4 opacity-50">&copy; 2026 Hak Cipta Dilindungi.</p>
+            <p class="text-xs mt-4 opacity-50 relative z-10">&copy; 2026 Hak Cipta Dilindungi.</p>
         </footer>
     </div>
 
     <div id="ai-section" class="hidden fixed inset-0 bg-gray-900 bg-opacity-90 z-[60] p-4 flex items-center justify-center">
-        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-5 text-white flex justify-between items-center shadow-md z-10">
+        <div class="w-full max-w-2xl bg-[var(--paper)] rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
+            <div class="ai-cover p-5 text-white flex justify-between items-center shadow-md z-10">
                 <div class="flex items-center gap-3">
-                    <div class="bg-white bg-opacity-20 p-2 rounded-full h-12 w-12 flex items-center justify-center">
-                        <i class="fas fa-robot text-2xl"></i>
+                    <div class="bg-white bg-opacity-15 p-2 rounded-full h-12 w-12 flex items-center justify-center border border-[var(--gold)]">
+                        <i class="fas fa-robot text-2xl text-[var(--gold)]"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-bold">DompetKu AI Assistant</h2>
-                        <p class="text-xs text-purple-100"><i class="fas fa-bolt text-yellow-300"></i> Powered by OpenRouter</p>
+                        <h2 class="font-display text-xl font-semibold">DompetKu AI Assistant</h2>
+                        <p class="text-xs text-[#CFE9DA]"><i class="fas fa-bolt text-[var(--gold)]"></i> Powered by OpenRouter</p>
                     </div>
                 </div>
-                <button id="btn-close-ai" class="text-white hover:text-red-300 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full h-10 w-10 transition"><i class="fas fa-times"></i></button>
+                <button id="btn-close-ai" class="text-white hover:text-[var(--clay)] bg-white bg-opacity-10 hover:bg-opacity-20 rounded-full h-10 w-10 transition"><i class="fas fa-times"></i></button>
             </div>
-            <div id="ai-chat-box" class="flex-1 p-5 overflow-y-auto bg-gray-50 flex flex-col gap-4">
+            <div id="ai-chat-box" class="flex-1 p-5 overflow-y-auto bg-[var(--cream)] flex flex-col gap-4">
                 <div class="flex items-start gap-3 w-4/5 ai-message">
-                    <div class="bg-gradient-to-br from-purple-500 to-indigo-500 text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-robot text-xs"></i></div>
-                    <div class="bg-white border border-purple-100 p-4 rounded-2xl rounded-tl-sm text-gray-700 shadow-sm text-sm">
+                    <div class="bg-gradient-to-br from-[var(--teal-950)] to-[var(--emerald-dark)] text-[var(--gold)] p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-robot text-xs"></i></div>
+                    <div class="ai-bubble-bot p-4 rounded-2xl rounded-tl-sm text-[var(--ink)] shadow-sm text-sm">
                         Halo! Saya adalah AI DompetKu. Saya bisa melihat total pemasukan, pengeluaran, dan saldo Anda bulan ini. Ada yang ingin dianalisis atau ditanyakan tentang keuangan Anda?
                     </div>
                 </div>
             </div>
-            <div class="p-4 bg-white border-t border-gray-100">
+            <div class="p-4 bg-[var(--paper)] border-t border-[#EDE7D6]">
                 <form id="ai-form" class="flex gap-2 relative">
-                    <input type="text" id="ai-input" class="flex-1 p-4 bg-gray-100 rounded-full outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white transition border border-transparent" placeholder="Ketik pertanyaan untuk AI di sini..." required>
-                    <button type="submit" class="bg-purple-600 text-white w-14 h-14 rounded-full hover:bg-purple-700 transition shadow-lg flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="ai-input" class="field-input flex-1 p-4 rounded-full" placeholder="Ketik pertanyaan untuk AI di sini..." required>
+                    <button type="submit" class="btn-gold w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"><i class="fas fa-paper-plane"></i></button>
                 </form>
                 <div class="text-center mt-2">
-                    <p class="text-[10px] text-gray-400">Pastikan API Key OpenRouter Anda telah dimasukkan ke dalam konfigurasi script.</p>
+                    <p class="text-[10px] text-[var(--ink-soft)]">Pastikan API Key OpenRouter Anda telah dimasukkan ke dalam konfigurasi script.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    
+
     <script type="module">
         // === IMPORT FUNGSI FIREBASE (Termasuk deleteUser) ===
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -419,7 +598,7 @@
           messagingSenderId: "779010595722",
           appId: "1:779010595722:web:42f284b4fa280f7dfe0673"
         };
-        
+
         // ==========================================
         // 2. MASUKKAN API KEY OPENROUTER ANDA DI SINI
         // ==========================================
@@ -444,7 +623,7 @@
             document.getElementById('register-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
             document.getElementById(sectionId).classList.remove('hidden');
-            
+
             if(sectionId === 'dashboard-section') {
                 initSwiper();
                 // Pastikan dashboard utama terbuka secara default
@@ -466,9 +645,9 @@
         const setupNumberInput = (inputId) => {
             const input = document.getElementById(inputId);
             input.addEventListener('input', function(e) {
-                let value = this.value.replace(/[^0-9]/g, ''); 
+                let value = this.value.replace(/[^0-9]/g, '');
                 if (value !== '') {
-                    this.value = parseInt(value, 10).toLocaleString('id-ID'); 
+                    this.value = parseInt(value, 10).toLocaleString('id-ID');
                 } else {
                     this.value = '';
                 }
@@ -529,16 +708,17 @@
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
                     sendEmailVerification(userCredential.user).then(() => {
-                        Swal.fire({ 
-                            icon: 'success', 
-                            title: 'Pendaftaran Berhasil!', 
-                            text: 'Silakan cek kotak masuk/spam email Anda untuk link verifikasi. Anda wajib memverifikasi email untuk menyimpan data.' 
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pendaftaran Berhasil!',
+                            text: 'Silakan cek kotak masuk/spam email Anda untuk link verifikasi. Anda wajib memverifikasi email untuk menyimpan data.',
+                            confirmButtonColor: '#1FA971'
                         });
                         signOut(auth);
                         showSection('login-section');
                     });
                 })
-                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message, confirmButtonColor: '#C1502E' }));
         });
 
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -546,21 +726,21 @@
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             signInWithEmailAndPassword(auth, email, password)
-                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: 'Email atau password salah!' }));
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: 'Email atau password salah!', confirmButtonColor: '#C1502E' }));
         });
 
         const handleGoogleAuth = () => {
             signInWithPopup(auth, googleProvider)
-                .then(() => Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Masuk menggunakan Google berhasil!' }))
-                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
+                .then(() => Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Masuk menggunakan Google berhasil!', confirmButtonColor: '#1FA971' }))
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message, confirmButtonColor: '#C1502E' }));
         };
         document.getElementById('btn-login-google').addEventListener('click', handleGoogleAuth);
         document.getElementById('btn-register-google').addEventListener('click', handleGoogleAuth);
 
         const handleAnonymousAuth = () => {
             signInAnonymously(auth)
-                .then(() => Swal.fire({ icon: 'success', title: 'Masuk Tanpa Akun', text: '⚠️ Data hanya tersimpan secara lokal sementara.' }))
-                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: error.message }));
+                .then(() => Swal.fire({ icon: 'success', title: 'Masuk Tanpa Akun', text: '⚠️ Data hanya tersimpan secara lokal sementara.', confirmButtonColor: '#1FA971' }))
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal Masuk', text: error.message, confirmButtonColor: '#C1502E' }));
         };
         document.getElementById('btn-login-anonymous').addEventListener('click', handleAnonymousAuth);
         document.getElementById('btn-register-anonymous').addEventListener('click', handleAnonymousAuth);
@@ -571,8 +751,8 @@
                 text: "Yakin ingin keluar dari akun ini?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#ef4444',
+                confirmButtonColor: '#1FA971',
+                cancelButtonColor: '#C1502E',
                 confirmButtonText: 'Ya, Keluar!'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -588,7 +768,7 @@
                 text: "Semua data transaksi dan akun Anda akan dihapus dan tidak bisa dikembalikan!",
                 icon: 'error',
                 showCancelButton: true,
-                confirmButtonColor: '#ef4444',
+                confirmButtonColor: '#C1502E',
                 cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Ya, Hapus Akun!',
                 cancelButtonText: 'Batal'
@@ -611,14 +791,14 @@
 
         document.getElementById('btn-forgot-password').addEventListener('click', () => {
             const email = document.getElementById('login-email').value;
-            if(!email) return Swal.fire({ icon: 'info', title: 'Perhatian', text: 'Masukkan email Anda di kolom email terlebih dahulu.' });
+            if(!email) return Swal.fire({ icon: 'info', title: 'Perhatian', text: 'Masukkan email Anda di kolom email terlebih dahulu.', confirmButtonColor: '#1FA971' });
             sendPasswordResetEmail(auth, email)
-                .then(() => Swal.fire({ icon: 'success', title: 'Terkirim', text: 'Link reset password telah dikirim.' }))
-                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
+                .then(() => Swal.fire({ icon: 'success', title: 'Terkirim', text: 'Link reset password telah dikirim.', confirmButtonColor: '#1FA971' }))
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message, confirmButtonColor: '#C1502E' }));
         });
 
         document.getElementById('btn-about').addEventListener('click', () => {
-            Swal.fire({ title: 'DompetKu v1.2', html: '<p>Aplikasi Rekap Pendapatan khusus untuk mempermudah manajemen keuangan harian Anda.</p>', icon: 'info', confirmButtonColor: '#10b981' });
+            Swal.fire({ title: 'DompetKu v1.2', html: '<p>Aplikasi Rekap Pendapatan khusus untuk mempermudah manajemen keuangan harian Anda.</p>', icon: 'info', confirmButtonColor: '#1FA971' });
             toggleSidebar();
         });
 
@@ -640,13 +820,13 @@
                     headerDisp.innerHTML = `<img src="${user.photoURL}" alt="Profil" class="w-8 h-8 rounded-full border border-white shadow-sm object-cover">`;
                     sideArea.classList.remove('hidden');
                     sideImg.src = user.photoURL;
-                    sideImg.className = 'w-10 h-10 rounded-full border-2 border-brand object-cover shadow';
+                    sideImg.className = 'w-10 h-10 rounded-full border-2 border-[var(--emerald)] object-cover shadow';
                     sideMail.textContent = user.email;
                 } else {
                     headerDisp.innerHTML = '<span class="text-xl"><i class="fas fa-user-circle"></i></span>';
                     sideArea.classList.remove('hidden');
                     sideImg.src = 'https://i.ibb.co.com/HfxfB4wr/canva-3d-user-profile-icon-on-blue-background-MAHFJu-GXOo-Y.png';
-                    sideImg.className = 'w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand text-lg';
+                    sideImg.className = 'w-10 h-10 rounded-full bg-[var(--emerald)]/20 flex items-center justify-center text-[var(--emerald-dark)] text-lg';
                     sideMail.textContent = user.email;
                 }
                 showSection('dashboard-section');
@@ -663,8 +843,8 @@
         document.getElementById('transaction-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if(!currentUser) return;
-            if (currentUser.isAnonymous) return Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Fitur simpan tidak tersedia untuk Mode Tanpa Akun.' });
-            if (!currentUser.emailVerified) return Swal.fire({ icon: 'warning', title: 'Email Belum Diverifikasi', text: 'Silakan verifikasi email Anda terlebih dahulu.' });
+            if (currentUser.isAnonymous) return Swal.fire({ icon: 'error', title: 'Akses Ditolak', text: 'Fitur simpan tidak tersedia untuk Mode Tanpa Akun.', confirmButtonColor: '#C1502E' });
+            if (!currentUser.emailVerified) return Swal.fire({ icon: 'warning', title: 'Email Belum Diverifikasi', text: 'Silakan verifikasi email Anda terlebih dahulu.', confirmButtonColor: '#E3B23C' });
 
             const type = document.getElementById('trans-type').value;
             const rawAmount = document.getElementById('trans-amount').value.replace(/\./g, '');
@@ -672,14 +852,14 @@
             const note = document.getElementById('trans-note').value;
             const date = document.getElementById('trans-date').value;
 
-            if(isNaN(amount) || amount <= 0) return Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.' });
+            if(isNaN(amount) || amount <= 0) return Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.', confirmButtonColor: '#C1502E' });
 
             const transRef = ref(db, 'transactions/' + currentUser.uid);
             push(transRef, { type, amount, note, date, timestamp: Date.now() }).then(() => {
                 document.getElementById('transaction-form').reset();
                 document.getElementById('trans-date').valueAsDate = new Date();
                 Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }).fire({ icon: 'success', title: 'Tersimpan' });
-            }).catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message }));
+            }).catch(error => Swal.fire({ icon: 'error', title: 'Gagal', text: error.message, confirmButtonColor: '#C1502E' }));
         });
 
         function loadData() {
@@ -705,27 +885,28 @@
             tbody.innerHTML = '';
             transactionsData.forEach(t => {
                 const isIncome = t.type === 'pemasukan';
-                const colorClass = isIncome ? 'text-green-600' : 'text-red-600';
+                const colorClass = isIncome ? 'text-[var(--emerald-dark)]' : 'text-[var(--clay-dark)]';
+                const badgeClass = isIncome ? 'badge-in' : 'badge-out';
                 const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '--:--';
-                
+
                 tbody.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50 transition">
-                        <td class="p-3 whitespace-nowrap"><div class="font-bold text-gray-700">${t.date}</div><div class="text-xs text-gray-500"><i class="far fa-clock"></i> ${timeStr}</div></td>
+                    <tr class="ledger-row transition">
+                        <td class="p-3 whitespace-nowrap"><div class="font-bold text-[var(--ink)]">${t.date}</div><div class="text-xs text-[var(--ink-soft)]"><i class="far fa-clock"></i> ${timeStr}</div></td>
                         <td class="p-3 font-medium">${t.note}</td>
-                        <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${isIncome ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${t.type.toUpperCase()}</span></td>
-                        <td class="p-3 text-right font-bold ${colorClass}">${isIncome?'+':'-'} ${formatRupiah(t.amount)}</td>
-                        <td class="p-3 text-center"><button onclick="deleteTransaction('${t.id}')" class="text-red-500 hover:text-red-700 p-1 bg-red-50 rounded"><i class="fas fa-trash"></i></button></td>
+                        <td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold ${badgeClass}">${t.type.toUpperCase()}</span></td>
+                        <td class="p-3 text-right font-bold money ${colorClass}">${isIncome?'+':'-'} ${formatRupiah(t.amount)}</td>
+                        <td class="p-3 text-center"><button onclick="deleteTransaction('${t.id}')" class="icon-chip text-[var(--clay-dark)] hover:text-[var(--clay)] p-1.5 bg-[#FBE9E2] rounded-full"><i class="fas fa-trash"></i></button></td>
                     </tr>`;
             });
         }
 
         window.deleteTransaction = (id) => {
-            Swal.fire({ title: 'Hapus Transaksi?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Hapus' })
+            Swal.fire({ title: 'Hapus Transaksi?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#C1502E', confirmButtonText: 'Hapus' })
                 .then((result) => { if (result.isConfirmed) remove(ref(db, `transactions/${currentUser.uid}/${id}`)); });
         };
 
         document.getElementById('btn-delete-all').addEventListener('click', () => {
-            Swal.fire({ title: 'Hapus SEMUA Data?', icon: 'error', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Bersihkan!' })
+            Swal.fire({ title: 'Hapus SEMUA Data?', icon: 'error', showCancelButton: true, confirmButtonColor: '#C1502E', confirmButtonText: 'Bersihkan!' })
                 .then((result) => { if (result.isConfirmed) remove(ref(db, `transactions/${currentUser.uid}`)); });
         });
 
@@ -753,12 +934,12 @@
             document.getElementById('net-balance').innerText = formatRupiah(incMonth - expMonth);
         }
 
-        // ==================== DATABASE UTANG (BARU) ====================
-        
+        // ==================== DATABASE UTANG ====================
+
         document.getElementById('utang-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if(!currentUser) return;
-            if (currentUser.isAnonymous || !currentUser.emailVerified) return Swal.fire({ icon: 'warning', title: 'Terbatas', text: 'Fitur tidak tersedia / Email belum diverifikasi.' });
+            if (currentUser.isAnonymous || !currentUser.emailVerified) return Swal.fire({ icon: 'warning', title: 'Terbatas', text: 'Fitur tidak tersedia / Email belum diverifikasi.', confirmButtonColor: '#E3B23C' });
 
             const type = document.getElementById('utang-type').value;
             const name = document.getElementById('utang-name').value;
@@ -766,14 +947,14 @@
             const amount = parseFloat(rawAmount);
             const date = document.getElementById('utang-date').value;
 
-            if(isNaN(amount) || amount <= 0) return Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.' });
+            if(isNaN(amount) || amount <= 0) return Swal.fire({ icon: 'error', title: 'Gagal', text: 'Nominal tidak valid.', confirmButtonColor: '#C1502E' });
 
             push(ref(db, 'debts/' + currentUser.uid), { type, name, amount, date, timestamp: Date.now() })
                 .then(() => {
                     document.getElementById('utang-form').reset();
                     document.getElementById('utang-date').valueAsDate = new Date();
                     Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }).fire({ icon: 'success', title: 'Catatan Utang Tersimpan' });
-                }).catch(err => Swal.fire({ icon: 'error', title: 'Gagal', text: err.message }));
+                }).catch(err => Swal.fire({ icon: 'error', title: 'Gagal', text: err.message, confirmButtonColor: '#C1502E' }));
         });
 
         function loadUtangData() {
@@ -791,30 +972,46 @@
             tbody.innerHTML = '';
             utangData.forEach(u => {
                 const isUtang = u.type === 'utang';
-                const badge = isUtang ? '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">UTANG SAYA</span>' : '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">PIUTANG ORANG</span>';
-                const color = isUtang ? 'text-red-600' : 'text-green-600';
-                
+                const badge = isUtang ? '<span class="px-2 py-1 badge-out text-xs font-bold rounded-full">UTANG SAYA</span>' : '<span class="px-2 py-1 badge-in text-xs font-bold rounded-full">PIUTANG ORANG</span>';
+                const color = isUtang ? 'text-[var(--clay-dark)]' : 'text-[var(--emerald-dark)]';
+
                 tbody.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50 transition">
-                        <td class="p-3 font-medium text-gray-600">${u.date}</td>
-                        <td class="p-3 font-bold">${u.name}</td>
+                    <tr class="ledger-row transition">
+                        <td class="p-3 font-medium text-[var(--ink-soft)]">${u.date}</td>
+                        <td class="p-3 font-bold text-[var(--ink)]">${u.name}</td>
                         <td class="p-3">${badge}</td>
-                        <td class="p-3 text-right font-bold ${color}">${formatRupiah(u.amount)}</td>
-                        <td class="p-3 text-center"><button onclick="deleteUtang('${u.id}')" class="text-gray-400 hover:text-red-500 transition"><i class="fas fa-check-circle text-lg" title="Tandai Lunas / Hapus"></i></button></td>
+                        <td class="p-3 text-right font-bold money ${color}">${formatRupiah(u.amount)}</td>
+                        <td class="p-3 text-center flex items-center justify-center gap-2">
+                            <button onclick="deleteUtang('${u.id}')" class="icon-chip text-[var(--emerald-dark)] hover:text-[var(--emerald)] p-1.5 bg-[#E4F5EA] rounded-full" title="Tandai Lunas"><i class="fas fa-check-circle"></i></button>
+                            <button onclick="removeUtangEntry('${u.id}')" class="icon-chip text-[var(--clay-dark)] hover:text-[var(--clay)] p-1.5 bg-[#FBE9E2] rounded-full" title="Hapus Catatan"><i class="fas fa-trash"></i></button>
+                        </td>
                     </tr>`;
             });
         }
 
         window.deleteUtang = (id) => {
-            Swal.fire({ title: 'Tandai Lunas?', icon: 'question', showCancelButton: true, confirmButtonColor: '#10b981', confirmButtonText: 'Ya, Lunas & Hapus!' })
+            Swal.fire({ title: 'Tandai Lunas?', text: 'Catatan ini akan ditandai lunas dan dihapus dari daftar.', icon: 'question', showCancelButton: true, confirmButtonColor: '#1FA971', confirmButtonText: 'Ya, Lunas & Hapus!' })
                 .then((result) => { if (result.isConfirmed) remove(ref(db, `debts/${currentUser.uid}/${id}`)); });
         };
+
+        // TAMBAHAN: Hapus satu catatan utang/piutang secara langsung (tanpa makna "lunas")
+        window.removeUtangEntry = (id) => {
+            Swal.fire({ title: 'Hapus Catatan Ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#C1502E', confirmButtonText: 'Hapus' })
+                .then((result) => { if (result.isConfirmed) remove(ref(db, `debts/${currentUser.uid}/${id}`)); });
+        };
+
+        // TAMBAHAN: Hapus SEMUA catatan utang/piutang sekaligus
+        document.getElementById('btn-delete-all-utang').addEventListener('click', () => {
+            if(!currentUser) return;
+            Swal.fire({ title: 'Hapus SEMUA Catatan Utang?', text: 'Seluruh data utang & piutang akan dihapus permanen.', icon: 'error', showCancelButton: true, confirmButtonColor: '#C1502E', confirmButtonText: 'Bersihkan!' })
+                .then((result) => { if (result.isConfirmed) remove(ref(db, `debts/${currentUser.uid}`)); });
+        });
 
 
         // ==================== CSV BACKUP ====================
 
         const downloadCSV = () => {
-            if(transactionsData.length === 0) return Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data.' });
+            if(transactionsData.length === 0) return Swal.fire({ icon: 'info', title: 'Data Kosong', text: 'Tidak ada data.', confirmButtonColor: '#1FA971' });
             let csvContent = "Tanggal,Waktu,Keterangan,Jenis,Nominal\n";
             transactionsData.forEach(t => {
                 const timeStr = t.timestamp ? new Date(t.timestamp).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '';
@@ -831,21 +1028,21 @@
         // ==================== OPENROUTER AI ASSISTANT ====================
         const aiSection = document.getElementById('ai-section');
         const aiChatBox = document.getElementById('ai-chat-box');
-        
+
         document.getElementById('btn-open-ai').addEventListener('click', () => { aiSection.classList.remove('hidden'); toggleSidebar(); });
         document.getElementById('btn-close-ai').addEventListener('click', () => aiSection.classList.add('hidden'));
 
         function addChatMessage(role, content) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex items-start gap-3 w-4/5 ai-message ${role === 'user' ? 'ml-auto flex-row-reverse' : ''}`;
-            const iconHTML = role === 'user' 
-                ? `<div class="bg-gradient-to-br from-brand to-brandDark text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-user text-xs"></i></div>`
-                : `<div class="bg-gradient-to-br from-purple-500 to-indigo-500 text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-robot text-xs"></i></div>`;
-            const bubbleClasses = role === 'user' ? 'bg-brand text-white border-transparent rounded-tr-sm' : 'bg-white border-purple-100 text-gray-700 rounded-tl-sm shadow-sm';
-            wrapper.innerHTML = `${iconHTML}<div class="border p-4 rounded-2xl ${bubbleClasses} text-sm whitespace-pre-wrap leading-relaxed">${content}</div>`;
+            const iconHTML = role === 'user'
+                ? `<div class="bg-gradient-to-br from-[var(--emerald)] to-[var(--emerald-dark)] text-white p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-user text-xs"></i></div>`
+                : `<div class="bg-gradient-to-br from-[var(--teal-950)] to-[var(--emerald-dark)] text-[var(--gold)] p-2 rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center mt-1"><i class="fas fa-robot text-xs"></i></div>`;
+            const bubbleClasses = role === 'user' ? 'ai-bubble-user rounded-tr-sm' : 'ai-bubble-bot text-[var(--ink)] rounded-tl-sm shadow-sm';
+            wrapper.innerHTML = `${iconHTML}<div class="p-4 rounded-2xl ${bubbleClasses} text-sm whitespace-pre-wrap leading-relaxed">${content}</div>`;
             aiChatBox.appendChild(wrapper);
             aiChatBox.scrollTop = aiChatBox.scrollHeight;
-            return wrapper.querySelector('.border');
+            return wrapper.querySelector('.rounded-2xl');
         }
 
         document.getElementById('ai-form').addEventListener('submit', async (e) => {
@@ -876,8 +1073,8 @@
                     body: JSON.stringify({
                         model: 'meta-llama/llama-3-8b-instruct:free',
                         messages: [
-                            { 
-                                role: 'system', 
+                            {
+                                role: 'system',
                                 content: `Anda adalah DompetKu AI, asisten keuangan. Gunakan bahasa Indonesia. Data: Pemasukan ${ctxPemasukan}, Pengeluaran ${ctxPengeluaran}, Saldo ${ctxSaldo}. Jawablah dengan format HTML dasar (<b>, <i>) jika perlu.`
                             },
                             { role: 'user', content: message }
@@ -897,7 +1094,7 @@
                 }
 
             } catch (error) {
-                loadingBubble.innerHTML = `<span class="text-red-500 font-bold"><i class="fas fa-exclamation-triangle"></i> Gagal Memuat AI!</span><br>Pastikan API Key sudah benar dan koneksi internet stabil.<br><br><b>Pesan Error:</b> ${error.message}<br><br><span class="text-xs text-gray-500">(Saran: Jika error Failed to fetch terus terjadi, provider internet Anda mungkin memblokir OpenRouter. Coba aktifkan VPN atau gunakan koneksi Wi-Fi lain.)</span>`;
+                loadingBubble.innerHTML = `<span class="text-[var(--clay-dark)] font-bold"><i class="fas fa-exclamation-triangle"></i> Gagal Memuat AI!</span><br>Pastikan API Key sudah benar dan koneksi internet stabil.<br><br><b>Pesan Error:</b> ${error.message}<br><br><span class="text-xs text-[var(--ink-soft)]">(Saran: Jika error Failed to fetch terus terjadi, provider internet Anda mungkin memblokir OpenRouter. Coba aktifkan VPN atau gunakan koneksi Wi-Fi lain.)</span>`;
             }
         });
 
