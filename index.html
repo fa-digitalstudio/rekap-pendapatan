@@ -186,17 +186,44 @@
         .ledger-card.bar-emerald::before{ background:linear-gradient(90deg,var(--emerald-dark),var(--emerald)); }
         .ledger-card.bar-clay::before{ background:linear-gradient(90deg,var(--clay-dark),var(--clay)); }
 
-        /* Balance hero */
+        /* ANIMASI BARU UNTUK BALANCE HERO */
+        @keyframes floatingCard {
+            0%, 100% { transform: translateY(0); box-shadow: 0 25px 50px -22px rgba(11,58,44,0.6); }
+            50% { transform: translateY(-6px); box-shadow: 0 35px 60px -15px rgba(11,58,44,0.7); }
+        }
+        @keyframes shineFX {
+            0% { left: -100%; }
+            20% { left: 100%; }
+            100% { left: 100%; }
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .balance-page{
             background: linear-gradient(165deg, var(--teal-950) 0%, var(--teal-800) 55%, var(--emerald-dark) 100%);
             border-radius:1.5rem; position:relative; overflow:hidden;
             box-shadow:0 25px 50px -22px rgba(11,58,44,0.6);
+            animation: floatingCard 4s ease-in-out infinite; /* Floating Effect */
         }
         .balance-page::before{
             content:""; position:absolute; top:0; bottom:0; left:50%;
             width:0; border-left:2px dashed rgba(255,255,255,0.14);
             display:none;
         }
+        .balance-page::after { /* Animasi Shine Effect */
+            content: "";
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-20deg);
+            animation: shineFX 6s infinite;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .pop-animate { animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
         @media (min-width:640px){ .balance-page::before{ display:block; } }
         .balance-stamp{
             width:3.5rem; height:3.5rem; border-radius:50%;
@@ -309,7 +336,7 @@
         </div>
     </div>
 
-    <div id="dashboard-section" class="hidden min-h-screen flex flex-col paper-bg pb-20 md:pb-0">
+    <div id="dashboard-section" class="hidden min-h-screen flex flex-col paper-bg pb-36 md:pb-0">
 
         <header class="passbook-cover text-white shadow-md p-4 flex justify-between items-center sticky top-0 z-40">
             <div class="flex items-center gap-3 relative z-10">
@@ -322,7 +349,7 @@
             <div class="text-sm font-medium flex items-center justify-center relative z-10" id="user-display-header"></div>
         </header>
 
-        <div id="sidebar" class="sidebar sidebar-closed fixed inset-y-0 left-0 w-72 shadow-2xl z-50 p-6 flex flex-col">
+        <div id="sidebar" class="sidebar sidebar-closed fixed inset-y-0 left-0 w-72 shadow-2xl z-50 p-6 pb-28 flex flex-col">
             <div class="flex justify-between items-center mb-4 pb-4 border-b border-[#EDE7D6]">
                 <h2 class="font-display text-xl font-semibold text-[var(--emerald-dark)]">Menu Utama</h2>
                 <button id="btn-close-menu" class="text-[var(--ink-soft)] hover:text-[var(--clay)] text-xl w-9 h-9 rounded-full hover:bg-[#FBF1EC] flex items-center justify-center transition"><i class="fas fa-times"></i></button>
@@ -331,9 +358,12 @@
             <div id="sidebar-profile-area" class="sidebar-profile hidden">
                 <div class="flex items-center gap-3">
                     <img id="side-profile-img" src="" alt="Profil" class="w-10 h-10 rounded-full border-2 border-[var(--emerald)] object-cover shadow">
-                    <div class="overflow-hidden">
+                    <div class="overflow-hidden w-full">
                         <p class="text-[10px] uppercase tracking-wide text-[var(--ink-soft)]">Aktif Sebagai</p>
                         <p id="side-profile-email" class="text-sm font-bold text-[var(--ink)] truncate"></p>
+                        <button id="btn-switch-account" class="mt-1 text-[11px] font-bold text-[var(--emerald-dark)] hover:underline flex items-center gap-1">
+                            <i class="fas fa-sync-alt"></i> Ganti Akun
+                        </button>
                     </div>
                 </div>
             </div>
@@ -640,9 +670,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, signInAnonymously, sendEmailVerification, deleteUser } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onValue, query, orderByChild, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // ==========================================
-        // 1. MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI
-        // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyDVc2I-leA_6xhNZkHwhMHF7oYKseACEV8",
           authDomain: "rekap-4d158.firebaseapp.com",
@@ -653,9 +680,6 @@
           appId: "1:779010595722:web:42f284b4fa280f7dfe0673"
         };
 
-        // ==========================================
-        // 2. MASUKKAN API KEY OPENROUTER ANDA DI SINI
-        // ==========================================
         const OPENROUTER_API_KEY = "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";
 
         const app = initializeApp(firebaseConfig);
@@ -688,7 +712,6 @@
             document.getElementById('main-utang').classList.add('hidden');
             document.getElementById(tabId).classList.remove('hidden');
 
-            // Reset Bottom Nav Icons
             document.querySelectorAll('.nav-bottom-btn').forEach(btn => {
                 btn.classList.remove('text-[var(--emerald-dark)]');
                 if(!btn.classList.contains('text-[var(--emerald-dark)]') && !btn.id.includes('home')) {
@@ -696,7 +719,6 @@
                 }
             });
 
-            // Highlight Active Bottom Nav (Mobile)
             if(tabId === 'main-utang') document.getElementById('nav-btn-utang').classList.add('text-[var(--emerald-dark)]');
             if(tabId === 'main-rekap') document.getElementById('nav-btn-rekap').classList.add('text-[var(--emerald-dark)]');
         };
@@ -777,6 +799,16 @@
         };
         document.getElementById('btn-login-google').addEventListener('click', handleGoogleAuth);
         document.getElementById('btn-register-google').addEventListener('click', handleGoogleAuth);
+        
+        // Ganti Akun Langsung (Switch Account)
+        document.getElementById('btn-switch-account').addEventListener('click', () => {
+            signInWithPopup(auth, googleProvider)
+                .then(() => {
+                    Swal.fire({ icon: 'success', title: 'Akun Dialihkan', text: 'Berhasil berganti akun!', timer: 2000, showConfirmButton: false });
+                    toggleSidebar();
+                })
+                .catch(error => Swal.fire({ icon: 'error', title: 'Gagal Ganti Akun', text: error.message, confirmButtonColor: '#C1502E' }));
+        });
 
         const handleAnonymousAuth = () => {
             signInAnonymously(auth)
@@ -890,7 +922,6 @@
             if(!currentUser) return;
             onValue(ref(db, 'transactions/' + currentUser.uid), (snapshot) => {
                 transactionsData = [];
-                // PERBAIKAN: Menambahkan kurung kurawal {} agar foreach tidak terhenti
                 snapshot.forEach((child) => {
                     transactionsData.push({ id: child.key, ...child.val() });
                 });
@@ -962,10 +993,16 @@
             document.getElementById('income-yesterday').innerText = formatRupiah(incYesterday);
             document.getElementById('income-month').innerText = formatRupiah(incMonth);
             document.getElementById('expense-month').innerText = formatRupiah(expMonth);
-            document.getElementById('net-balance').innerText = formatRupiah(incMonth - expMonth);
+            
+            // Animasi angka hero
+            const netBalEl = document.getElementById('net-balance');
+            netBalEl.innerText = formatRupiah(incMonth - expMonth);
+            netBalEl.classList.remove('pop-animate');
+            void netBalEl.offsetWidth; // trigger reflow
+            netBalEl.classList.add('pop-animate');
         }
 
-        // ==================== DATABASE UTANG ====================
+        // ==================== DATABASE UTANG & WA ====================
         document.getElementById('utang-form').addEventListener('submit', (e) => {
             e.preventDefault();
             if(!currentUser) return;
@@ -997,7 +1034,6 @@
             if(!currentUser) return;
             onValue(ref(db, 'debts/' + currentUser.uid), (snapshot) => {
                 utangData = [];
-                // PERBAIKAN: Menambahkan kurung kurawal {} agar foreach tidak terhenti di data pertama
                 snapshot.forEach((child) => {
                     utangData.push({ id: child.key, ...child.val() });
                 });
@@ -1005,6 +1041,28 @@
                 renderUtangTable();
             });
         }
+
+        window.sendWAReminder = (name, amount, date) => {
+            Swal.fire({
+                title: 'Kirim Pengingat WA',
+                text: `Kirim pesan ke ${name}?`,
+                input: 'text',
+                inputPlaceholder: 'No WA (cth: 08123456789)',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#1FA971',
+                confirmButtonText: '<i class="fab fa-whatsapp"></i> Kirim WA'
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    let phone = result.value.replace(/[^0-9]/g, '');
+                    if(phone.startsWith('0')) phone = '62' + phone.substring(1);
+                    const formattedAmount = formatRupiah(amount);
+                    const text = `Halo ${name}, sekadar mengingatkan terkait tagihan sebesar *${formattedAmount}* yang jatuh tempo pada *${date}*. Mohon konfirmasinya ya. Terima kasih! 🙏`;
+                    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+                    window.open(waUrl, '_blank');
+                }
+            });
+        };
 
         function renderUtangTable() {
             const tbody = document.getElementById('utang-table-body');
@@ -1020,6 +1078,9 @@
 
                 const badge = isUtang ? '<span class="px-2 py-1 badge-out text-xs font-bold rounded-full">UTANG SAYA</span>' : '<span class="px-2 py-1 badge-in text-xs font-bold rounded-full">PIUTANG ORANG</span>';
                 const color = isUtang ? 'text-[var(--clay-dark)]' : 'text-[var(--emerald-dark)]';
+                
+                // Tambahan Tombol WA Khusus Piutang
+                const waButtonHtml = `<button onclick="sendWAReminder('${u.name}', ${u.amount}, '${u.date}')" class="icon-chip text-green-600 hover:text-green-700 p-1.5 bg-green-50 border border-green-200 rounded-full" title="Ingatkan via WA"><i class="fab fa-whatsapp"></i></button>`;
 
                 const tr = document.createElement('tr');
                 tr.className = "ledger-row transition";
@@ -1028,7 +1089,8 @@
                     <td class="p-3 font-bold text-[var(--ink)]"></td>
                     <td class="p-3">${badge}</td>
                     <td class="p-3 text-right font-bold money ${color}">${formatRupiah(u.amount)}</td>
-                    <td class="p-3 text-center flex items-center justify-center gap-2">
+                    <td class="p-3 text-center flex items-center justify-center gap-1.5">
+                        ${waButtonHtml}
                         <button onclick="deleteUtang('${u.id}')" class="icon-chip text-[var(--emerald-dark)] hover:text-[var(--emerald)] p-1.5 bg-[#E4F5EA] rounded-full" title="Tandai Lunas"><i class="fas fa-check-circle"></i></button>
                         <button onclick="removeUtangEntry('${u.id}')" class="icon-chip text-[var(--clay-dark)] hover:text-[var(--clay)] p-1.5 bg-[#FBE9E2] rounded-full" title="Hapus Catatan"><i class="fas fa-trash"></i></button>
                     </td>
@@ -1037,11 +1099,9 @@
                 tbody.appendChild(tr);
             });
             
-            // Update Kartu Ringkasan Utang
             document.getElementById('total-utang-card').innerText = formatRupiah(totalUtang);
             document.getElementById('total-piutang-card').innerText = formatRupiah(totalPiutang);
             
-            // Update Dashboard Utang Card
             document.getElementById('dash-total-utang').innerText = formatRupiah(totalUtang);
             document.getElementById('dash-total-piutang').innerText = formatRupiah(totalPiutang);
         }
@@ -1117,13 +1177,11 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                        'HTTP-Referer': window.location.href || 'https://dompetku.com',
-                        'X-Title': 'DompetKu AI'
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`
                     },
                     body: JSON.stringify({
-                        model: 'meta-llama/llama-3-8b-instruct:free',
+                        // Perbaikan Model ID: Menggunakan model Gemini Lite versi stabil/gratis dari OpenRouter agar tidak error
+                        model: 'google/gemini-2.0-flash-lite-preview-02-05:free', 
                         messages: [
                             {
                                 role: 'system',
